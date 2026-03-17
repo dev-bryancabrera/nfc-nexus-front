@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg:#050508;--surface:#0d0d14;--surface2:#13131e;
+    --border:rgba(255,255,255,0.07);--border-bright:rgba(99,102,241,0.4);
+    --accent:#6366f1;--accent2:#06ffa5;--accent3:#f059da;
+    --text:#e8e8f0;--text-dim:#6b6b8a;--text-mid:#a0a0c0;
+    --danger:#ff4757;--warn:#ffa502;
+    --glow:0 0 40px rgba(99,102,241,0.15);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;z-index:0;
+    background-image:linear-gradient(rgba(99,102,241,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.03) 1px,transparent 1px);
+    background-size:40px 40px;pointer-events:none}
+  ::-webkit-scrollbar{width:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.3);border-radius:3px}
+}
+
+@layer components {
+  .btn{@apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 border-0 select-none}
+  .btn-primary{@apply bg-accent text-white hover:bg-indigo-600 hover:shadow-lg hover:-translate-y-px active:translate-y-0}
+  .btn-secondary{@apply bg-surface2 text-[var(--text)] border border-[var(--border)] hover:border-accent hover:text-accent}
+  .btn-ghost{@apply bg-transparent text-[var(--text-dim)] hover:text-[var(--text)]}
+  .btn-success{@apply bg-[rgba(6,255,165,0.1)] text-accent2 border border-[rgba(6,255,165,0.3)] hover:bg-[rgba(6,255,165,0.2)]}
+  .btn-danger{@apply bg-[rgba(255,71,87,0.1)] text-danger border border-[rgba(255,71,87,0.3)] hover:bg-[rgba(255,71,87,0.2)]}
+  .card{@apply bg-surface border border-[var(--border)] rounded-2xl transition-all duration-200}
+  .card-hover{@apply hover:border-[var(--border-bright)] hover:-translate-y-0.5 hover:shadow-[var(--glow)]}
+  .input{@apply w-full bg-bg border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text)] focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-colors}
+  .label{@apply block text-[10px] font-semibold font-mono tracking-widest uppercase text-[var(--text-dim)] mb-1.5}
+  .section-title{@apply font-syne text-xl font-bold}
+  .gradient-text{background:linear-gradient(135deg,#6366f1,#06ffa5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .badge-active{@apply text-[10px] font-mono px-2.5 py-1 rounded-full bg-[rgba(6,255,165,0.1)] text-accent2 border border-[rgba(6,255,165,0.2)]}
+  .badge-draft{@apply text-[10px] font-mono px-2.5 py-1 rounded-full bg-[rgba(255,165,2,0.1)] text-warn border border-[rgba(255,165,2,0.2)]}
+  .toggle-track{@apply relative w-10 h-[22px] rounded-full cursor-pointer transition-all duration-200 bg-surface2 border border-[var(--border)]}
+  .toggle-track.on{@apply bg-accent border-accent}
+  .toggle-thumb{@apply absolute top-[3px] left-[3px] w-3.5 h-3.5 rounded-full bg-white transition-transform duration-200}
+  .toggle-track.on .toggle-thumb{@apply translate-x-[18px]}
+  .url-box{@apply bg-bg border border-[var(--border-bright)] rounded-xl px-4 py-3 font-mono text-xs text-accent2 flex items-center justify-between gap-3 break-all}
+}
