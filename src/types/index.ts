@@ -49,6 +49,7 @@ export interface CardSettings {
   password_protected: boolean;
   show_emergency_banner: boolean;
   realtime_enabled: boolean;
+  theme_color?: string;
   // Gamer
   show_online_status: boolean;
   // Access
@@ -68,6 +69,7 @@ export interface Card {
   blocks: CardBlock[]; settings: CardSettings;
   cover_gradient: string; full_name: string | null; role: string | null;
   company: string | null; bio: string | null; avatar_emoji: string | null;
+  avatar_url: string | null;
   phone: string | null; email: string | null; website: string | null;
   address: string | null; public_url: string;
   scan_count: number; created_at: string; updated_at: string;

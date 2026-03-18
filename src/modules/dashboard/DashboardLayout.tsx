@@ -23,10 +23,15 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await authService.logout();
-    clear();
-    toast.success('Sesión cerrada');
-    navigate('/login');
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.warn('Network error during logout, forcing clear', error);
+    } finally {
+      clear();
+      toast.success('Sesión cerrada');
+      navigate('/login');
+    }
   };
 
   return (

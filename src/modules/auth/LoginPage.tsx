@@ -1,12 +1,25 @@
-// ── LoginPage ────────────────────────────────────────────
 import { useState } from 'react';
 import { authService } from '../../services/auth.service';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [inviteCode, setInviteCode] = useState('');
+  const [showInvite, setShowInvite] = useState(false);
 
   const handleGoogle = async () => {
+    const requiredCode = (import.meta as any).env.VITE_INVITE_CODE;
+    
+    if (requiredCode && !showInvite) {
+      setShowInvite(true);
+      return;
+    }
+    
+    if (requiredCode && inviteCode !== requiredCode) {
+      toast.error('Código de invitación incorrecto');
+      return;
+    }
+
     setLoading(true);
     try { await authService.googleLogin(); }
     catch { toast.error('Error al iniciar con Google'); setLoading(false); }
@@ -23,6 +36,21 @@ export default function LoginPage() {
         <div className="card p-8">
           <h1 className="font-syne text-2xl font-bold mb-1">Bienvenido</h1>
           <p className="text-sm text-[var(--text-dim)] mb-8">Accede con tu cuenta de Google</p>
+
+          {showInvite && (
+            <div className="mb-6 animate-fade-in">
+              <label className="label text-accent2">Código de invitación requerido</label>
+              <input 
+                type="text" 
+                className="input w-full" 
+                placeholder="Ej. NEXUS-2026"
+                value={inviteCode}
+                onChange={e => setInviteCode(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleGoogle()}
+              />
+            </div>
+          )}
+
           <button onClick={handleGoogle} disabled={loading}
             className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white text-gray-800 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-all hover:shadow-lg hover:-translate-y-px disabled:opacity-60">
             <svg width="20" height="20" viewBox="0 0 24 24">

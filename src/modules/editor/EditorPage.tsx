@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { cardsService } from '../../services/cards.service';
+import { storageService } from '../../services/storage.service';
 import type { Card, CardBlock, CardSettings, CardType } from '../../types';
 import { DEFAULT_SETTINGS } from '../../types';
 import { getBlocksForCard, groupBlocks, CATEGORY_LABELS } from '../../lib/blocks';
@@ -40,6 +41,7 @@ export default function EditorPage() {
   const [activeSection, setActiveSection] = useState<'info' | 'blocks' | 'settings'>('info');
   const [expandedBlock, setExpandedBlock] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const [card, setCard] = useState<Partial<Card>>({
     name: '', type: 'personal', status: 'draft', theme: 'dark-nexus',
@@ -93,6 +95,22 @@ export default function EditorPage() {
       const r = await cardsService.publish(cardId!);
       setCard(r.card); toast.success('¡Card publicada!');
     } catch { toast.error('Error al publicar'); }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const url = await storageService.uploadImage(file);
+      set('avatar_url', url);
+      toast.success('Foto de perfil subida');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = '';
+    }
   };
 
   const cardType = card.type || 'personal';
@@ -193,6 +211,17 @@ export default function EditorPage() {
                 <div className="card p-5">
                   <h3 className="text-sm font-bold mb-4">Información de contacto</h3>
                   <div className="space-y-3">
+                    <div>
+                      <label className="label">Foto de perfil (URL externa o Subir)</label>
+                      <div className="flex gap-2">
+                        <input className="input flex-1" placeholder="https://..." value={card.avatar_url || ''} onChange={e => set('avatar_url', e.target.value)} />
+                        <label className="btn btn-secondary cursor-pointer whitespace-nowrap min-w-[90px] justify-center">
+                          {uploadingAvatar ? '⏳' : '📂 Subir'}
+                          <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+                        </label>
+                      </div>
+                      <p className="text-[10px] text-[var(--text-dim)] mt-1">Sube la foto directo a la Card o pega un enlace web.</p>
+                    </div>
                     {[['full_name','Nombre'],['role','Cargo'],['company','Empresa'],['bio','Bio'],['avatar_emoji','Emoji'],['phone','Teléfono'],['email','Email'],['website','Web'],['address','Dirección']].map(([k,l]) => (
                       <div key={k}><label className="label">{l}</label>
                         {k === 'bio' ? <textarea className="input resize-none h-16" value={(card as Record<string,unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} />
@@ -266,6 +295,24 @@ export default function EditorPage() {
           {activeSection === 'settings' && (
             <div className="card p-5">
               <h3 className="text-sm font-bold mb-4">Opciones avanzadas</h3>
+
+              <div className="mb-6">
+                <label className="label">Color de la Card (Tema)</label>
+                <div className="flex gap-3 items-center">
+                  <input type="color" className="w-10 h-10 rounded cursor-pointer bg-transparent border-0 p-0" 
+                    value={settings.theme_color || '#6366f1'} 
+                    onChange={e => setSetting('theme_color' as any, e.target.value as any)} 
+                  />
+                  <div className="flex-1">
+                    <input className="input w-full font-mono text-xs uppercase" 
+                      value={settings.theme_color || '#6366f1'} 
+                      onChange={e => setSetting('theme_color' as any, e.target.value as any)} 
+                      placeholder="#6366F1"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="divide-y divide-[var(--border)]">
                 {([
                   ['save_contact_btn',    'Botón Guardar Contacto',    'Descarga .vcf en iOS y Android'],
@@ -309,12 +356,16 @@ function PhonePreview({ card }: { card: Partial<Card> }) {
     <div className="flex justify-center">
       <div className="w-[300px] bg-black rounded-[36px] border-[7px] border-[#1a1a2e] shadow-[0_30px_80px_rgba(0,0,0,0.8)] overflow-hidden">
         <div className="h-6 bg-black flex items-center justify-center"><div className="w-16 h-3 bg-[#111] rounded-full" /></div>
-        <div className="bg-[#050508] min-h-[560px]">
+        <div className="bg-[#050508] min-h-[560px]" style={{ '--accent': (card.settings as CardSettings)?.theme_color || '#6366f1' } as React.CSSProperties}>
           {isMedical && <div className="bg-danger text-white text-[10px] font-mono text-center py-1.5 font-bold tracking-widest">🚨 PERFIL DE EMERGENCIA MÉDICA</div>}
           <div className="h-28 relative" style={{ background: isMedical ? 'linear-gradient(135deg,#ff4757,#c0392b)' : card.cover_gradient || GRADIENTS[0] }}>
-            <div className="absolute bottom-0 left-4 translate-y-1/2 w-12 h-12 rounded-full border-[3px] border-[#050508] flex items-center justify-center text-xl"
+            <div className="absolute bottom-0 left-4 translate-y-1/2 w-16 h-16 rounded-full border-[3px] border-[#050508] flex items-center justify-center text-2xl overflow-hidden bg-surface"
               style={{ background: isMedical ? '#fff' : 'linear-gradient(135deg,#f059da,#6366f1)' }}>
-              {isMedical ? '🏥' : card.avatar_emoji || '🚀'}
+              {card.avatar_url ? (
+                <img src={card.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                isMedical ? '🏥' : card.avatar_emoji || '🚀'
+              )}
             </div>
           </div>
           <div className="px-4 pt-9 pb-4">
@@ -323,12 +374,12 @@ function PhonePreview({ card }: { card: Partial<Card> }) {
             {card.bio && <div className="text-[10px] text-[var(--text-mid)] mt-2 line-clamp-2">{card.bio}</div>}
 
             {!isMedical && (
-              <div className="mt-3 bg-[rgba(6,255,165,0.1)] border border-[rgba(6,255,165,0.2)] text-accent2 rounded-xl p-2 text-center text-[10px] font-semibold">💾 Guardar Contacto</div>
+              <div className="mt-3 bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent)] rounded-xl p-2 text-center text-[10px] font-semibold">💾 Guardar Contacto</div>
             )}
 
-            <div className="mt-2 space-y-1">
-              {card.phone && <div className="bg-accent/8 border border-accent/15 rounded-xl px-2.5 py-1.5 text-[10px]">📞 {card.phone}</div>}
-              {card.email && <div className="bg-accent/8 border border-accent/15 rounded-xl px-2.5 py-1.5 text-[10px]">📧 {card.email}</div>}
+            <div className="mt-2 space-y-1" style={{ color: 'var(--accent)' }}>
+              {card.phone && <div className="bg-[var(--accent)]/5 border border-[var(--accent)]/10 rounded-xl px-2.5 py-1.5 text-[10px]">📞 {card.phone}</div>}
+              {card.email && <div className="bg-[var(--accent)]/5 border border-[var(--accent)]/10 rounded-xl px-2.5 py-1.5 text-[10px]">📧 {card.email}</div>}
             </div>
 
             {(card.blocks || []).filter(b => b.visible).slice(0, 4).map(b => (

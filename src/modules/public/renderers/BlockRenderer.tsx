@@ -584,6 +584,143 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'text':
       return <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4 text-sm leading-relaxed text-[#a0a0c0]">{cfg.content as string}</div>;
 
+    case 'gallery': {
+      const title = cfg.title as string || 'Galería';
+      const photos = (cfg.photos as { url: string; caption?: string }[]) || [];
+      if (photos.length === 0) return null;
+      return (
+        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+          <div className="font-syne font-bold text-sm mb-3">🖼️ {title}</div>
+          <div className="grid grid-cols-2 gap-2">
+              {photos.map((p, i) => (
+              <div key={i} className="relative group rounded-xl overflow-hidden aspect-square border border-[rgba(255,255,255,0.04)]">
+                <img src={p.url} alt={p.caption || ''} className="w-full h-full object-cover" />
+                {p.caption && (
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 p-2 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    {p.caption}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    case 'project': {
+      const items = (cfg.items as { title: string; subtitle?: string; url: string; image_url?: string; description?: string }[]) || [];
+      if (items.length === 0) return null;
+      return (
+        <div className="space-y-3">
+          {items.map((p, i) => (
+            <a key={i} href={p.url || '#'} target={p.url ? '_blank' : undefined} rel="noreferrer" onClick={() => p.url && track('clicked_link')}
+              className="block bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl overflow-hidden hover:border-[var(--accent)] transition-all group relative">
+              {p.image_url && (
+                <div className="w-full h-32 relative overflow-hidden">
+                  <img src={p.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#13131e] to-transparent opacity-90" />
+                </div>
+              )}
+              <div className="p-4" style={{ marginTop: p.image_url ? '-48px' : '0' }}>
+                <div className="relative z-10 flex items-end justify-between gap-2">
+                  <div>
+                    <h3 className="font-syne font-bold text-base text-white group-hover:text-[var(--accent)] transition-colors">{p.title || 'Proyecto'}</h3>
+                    {p.subtitle && <p className="text-[10px] font-mono tracking-widest text-[var(--accent)] mt-1">{p.subtitle}</p>}
+                  </div>
+                  {p.url && <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-xs group-hover:bg-[var(--accent)] group-hover:text-black transition-colors">↗</div>}
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      );
+    }
+
+    case 'video': {
+      const rawUrl = cfg.url as string || '';
+      if (!rawUrl) return null;
+      const getEmbedUrl = (url: string) => {
+        const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+        const vm = url.match(/vimeo\.com\/(\d+)/);
+        if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
+        return '';
+      };
+      const embedUrl = getEmbedUrl(rawUrl);
+      if (!embedUrl) return null;
+
+      return (
+        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+          {cfg.title && <div className="font-syne font-bold text-sm mb-1">▶️ {cfg.title as string}</div>}
+          {cfg.description && <div className="text-xs text-[var(--text-dim)] mb-3">{cfg.description as string}</div>}
+          <div className="rounded-xl overflow-hidden border border-[rgba(255,255,255,0.04)]">
+            <iframe src={embedUrl} width="100%" height="200" allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture" allowFullScreen className="border-0 bg-black" />
+          </div>
+        </div>
+      );
+    }
+
+    case 'pdf': {
+      if (!cfg.url) return null;
+      return (
+        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4 flex flex-col items-center text-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-[rgba(255,71,87,0.1)] text-[#ff4757] flex items-center justify-center text-2xl border border-[rgba(255,71,87,0.2)]">📄</div>
+          <div>
+            <div className="font-syne font-bold text-sm">{cfg.title as string || 'Documento PDF'}</div>
+            <div className="text-[10px] text-[var(--text-dim)] mt-0.5">{cfg.allow_download ? 'Documento descargable' : 'Solo lectura'}</div>
+          </div>
+          <a href={cfg.url as string} target="_blank" rel="noreferrer" onClick={() => track('clicked_link')}
+            className="w-full flex items-center justify-center gap-2 bg-[#ff4757] rounded-xl py-3 text-sm font-bold text-white hover:bg-[#ff2e43] transition-all active:scale-95">
+            {cfg.btn_label as string || 'Ver Documento'}
+          </a>
+        </div>
+      );
+    }
+
+    case 'faq': {
+      const faqs = (cfg.faqs as { question: string; answer: string }[]) || [];
+      if (faqs.length === 0) return null;
+      function FAQItem({ q, a }: { q: string, a: string }) {
+        const [open, setOpen] = useState(false);
+        return (
+          <div className="border-b border-[rgba(255,255,255,0.04)] last:border-0">
+            <button className="w-full flex items-center justify-between py-3 text-left hover:text-[#6366f1] transition-colors" onClick={() => setOpen(!open)}>
+              <span className="font-bold text-sm pr-4">{q}</span>
+              <span className={`text-[var(--text-dim)] transition-transform ${open ? 'rotate-180 text-[#6366f1]' : ''}`}>▼</span>
+            </button>
+            {open && <div className="pb-3 text-xs text-[var(--text-dim)] leading-relaxed">{a}</div>}
+          </div>
+        );
+      }
+      return (
+        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+          <div className="font-syne font-bold text-sm mb-2">❓ {cfg.title as string || 'Preguntas Frecuentes'}</div>
+          <div>
+            {faqs.map((f, i) => <FAQItem key={i} q={f.question} a={f.answer} />)}
+          </div>
+        </div>
+      );
+    }
+
+    case 'stats': {
+      const items = (cfg.items as { label: string; value: string; icon?: string }[]) || [];
+      if (items.length === 0) return null;
+      return (
+        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+          <div className="font-syne font-bold text-sm mb-3">📊 {cfg.title as string || 'Estadísticas'}</div>
+          <div className="grid grid-cols-2 gap-2">
+            {items.map((s, i) => (
+              <div key={i} className="bg-[#050508] rounded-xl p-3 text-center border border-[rgba(255,255,255,0.04)]">
+                <div className="text-xl mb-1">{s.icon || '📈'}</div>
+                <div className="font-mono font-bold text-base text-[#6366f1]">{s.value}</div>
+                <div className="text-[10px] text-[var(--text-dim)] mt-0.5">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     case 'wifi_qr': {
       function WifiQRBlock({ cfg }: { cfg: Record<string, unknown> }) {
         const canvasRef = useRef<HTMLCanvasElement>(null);

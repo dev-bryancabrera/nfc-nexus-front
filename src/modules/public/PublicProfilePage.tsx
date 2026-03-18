@@ -90,13 +90,18 @@ export default function PublicProfilePage({ slugOverride }: Props) {
   );
 
   const cardSettings = card.settings as CardSettings;
-  const theme = TYPE_THEMES[card.type] || TYPE_THEMES.academic;
+  const baseTheme = TYPE_THEMES[card.type] || TYPE_THEMES.academic;
+  const theme = { ...baseTheme, accent: cardSettings.theme_color || baseTheme.accent };
   const isMedical = card.type === 'medical';
   const isGamer = card.type === 'gamer';
   const isRestaurant = card.type === 'restaurant';
   const coverGradient = isMedical ? theme.cover : card.cover_gradient;
 
-  const avatarEmoji = isGamer ? '🎮' : isMedical ? '🏥' : card.avatar_emoji || '🚀';
+  const avatarContent = card.avatar_url ? (
+    <img src={card.avatar_url} alt={card.full_name || 'Perfil'} className="w-full h-full object-cover" />
+  ) : (
+    isGamer ? '🎮' : isMedical ? '🏥' : card.avatar_emoji || '🚀'
+  );
 
   return (
     <div className="min-h-screen text-[#e8e8f0]" style={{ background: theme.bg, fontFamily: 'Outfit, sans-serif' }}>
@@ -114,9 +119,9 @@ export default function PublicProfilePage({ slugOverride }: Props) {
           <div className="absolute inset-0 flex items-center justify-center opacity-5">
             <div className="text-[120px]">🎮</div>
           </div>
-          <div className="absolute bottom-0 left-5 translate-y-1/2 w-20 h-20 rounded-2xl border-[4px] border-[#05040a] bg-[rgba(240,89,218,0.2)] flex items-center justify-center text-3xl"
+          <div className="absolute bottom-0 left-5 translate-y-1/2 w-20 h-20 rounded-2xl border-[4px] border-[#05040a] bg-[rgba(240,89,218,0.2)] overflow-hidden flex items-center justify-center text-3xl"
             style={{ boxShadow: `0 0 30px ${theme.accent}40` }}>
-            {avatarEmoji}
+            {avatarContent}
           </div>
         </div>
       )}
@@ -125,9 +130,9 @@ export default function PublicProfilePage({ slugOverride }: Props) {
       {!isGamer && (
         <div className="h-44 relative" style={{ background: coverGradient }}>
           {isMedical && <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40" />}
-          <div className="absolute bottom-0 left-5 translate-y-1/2 w-20 h-20 rounded-full border-[4px] border-[#050508] flex items-center justify-center text-3xl"
+          <div className="absolute bottom-0 left-5 translate-y-1/2 w-20 h-20 rounded-full border-[4px] border-[#050508] bg-surface overflow-hidden flex items-center justify-center text-3xl"
             style={{ background: isMedical ? '#fff' : `linear-gradient(135deg,#f059da,#6366f1)` }}>
-            {avatarEmoji}
+            {avatarContent}
           </div>
         </div>
       )}
@@ -186,8 +191,10 @@ export default function PublicProfilePage({ slugOverride }: Props) {
 
         {/* All blocks */}
         <div className="mt-4 space-y-3">
-          {card.blocks?.filter(b => b.visible).map(block => (
-            <BlockRenderer key={block.id} block={block} slug={slug} />
+          {card.blocks?.filter(b => b.visible).map((block, i) => (
+            <div key={block.id} className={cardSettings.animations ? "animate-fade-in-up" : ""} style={{ animationDelay: `${(i + 1) * 75}ms`, animationFillMode: 'both' }}>
+              <BlockRenderer block={block} slug={slug} />
+            </div>
           ))}
         </div>
 

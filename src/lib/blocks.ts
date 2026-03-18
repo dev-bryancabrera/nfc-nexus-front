@@ -30,7 +30,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   { type: 'certificate', label: 'Certificado',  icon: '🏆', category: 'academic', cardTypes: ['academic'] },
   { type: 'course',      label: 'Curso',        icon: '📚', category: 'academic', cardTypes: ['academic'] },
   { type: 'achievement', label: 'Logro',        icon: '🌟', category: 'academic', cardTypes: ['academic'] },
-  { type: 'project',     label: 'Proyecto',     icon: '🚀', category: 'academic', cardTypes: ['academic','portfolio','gamer'] },
+  { type: 'project',     label: 'Proyecto / Portafolio', icon: '🚀', category: 'general' },
   { type: 'skill_set',   label: 'Habilidades',  icon: '⚡', category: 'academic', cardTypes: ['academic','portfolio','personal','fitness'] },
   { type: 'gaming_profile', label: 'Perfil Gaming',  icon: '🎮', category: 'gamer', cardTypes: ['gamer'] },
   { type: 'gaming_stats',   label: 'Estadísticas',   icon: '📈', category: 'gamer', cardTypes: ['gamer'] },

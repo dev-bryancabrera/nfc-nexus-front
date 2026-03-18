@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { CardBlock } from '../../../types';
+import { storageService } from '../../../services/storage.service';
+import toast from 'react-hot-toast';
 
 interface Props {
   block: CardBlock;
@@ -515,7 +517,7 @@ export default function BlockEditor({ block, onChange }: Props) {
 
     /* ═══ GALLERY 🖼️ ════════════════════════════════════════════════════════ */
     case 'gallery': {
-      const photos = (cfg.photos as { url: string; caption?: string }[]) || [];
+      const photos = (cfg.photos as { url: string; caption?: string; _uploading?: boolean }[]) || [];
       return (
         <div className="space-y-3">
           <div>
@@ -527,6 +529,16 @@ export default function BlockEditor({ block, onChange }: Props) {
             <div key={i} className="bg-bg border border-[var(--border)] rounded-xl p-3 space-y-2">
               <div className="flex gap-2 items-center">
                 <input className="input flex-1" placeholder="https://i.imgur.com/..." value={p.url} onChange={e => { const u = [...photos]; u[i].url = e.target.value; set('photos', u); }} />
+                <label className="btn btn-secondary cursor-pointer whitespace-nowrap px-3 text-xs flex items-center h-[42px]">
+                  {p._uploading ? '⏳' : '📂'}
+                  <input type="file" accept="image/*" className="hidden" disabled={p._uploading as boolean} onChange={async e => {
+                    const file = e.target.files?.[0]; if (!file) return;
+                    const u = [...photos]; u[i] = { ...u[i], _uploading: true }; set('photos', u);
+                    try { const url = await storageService.uploadImage(file); u[i].url = url; }
+                    catch (err: any) { toast.error(err.message); }
+                    finally { delete u[i]._uploading; set('photos', u); }
+                  }} />
+                </label>
                 <button className="text-danger text-xs px-2" onClick={() => set('photos', photos.filter((_, j) => j !== i))}>✕</button>
               </div>
               <input className="input" placeholder="Descripción (opcional)" value={p.caption || ''} onChange={e => { const u = [...photos]; u[i].caption = e.target.value; set('photos', u); }} />
@@ -535,6 +547,45 @@ export default function BlockEditor({ block, onChange }: Props) {
           ))}
           <button className="btn btn-secondary text-xs w-full justify-center" onClick={() => set('photos', [...photos, { url: '', caption: '' }])}>+ Añadir foto</button>
           <p className="text-[10px] text-[var(--text-dim)]">Sube tus fotos a Imgur, Cloudinary o similar y pega la URL directa.</p>
+        </div>
+      );
+    }
+
+    /* ═══ PROJECT / PORTFOLIO 🚀 ══════════════════════════════════════════ */
+    case 'project': {
+      const items = (cfg.items as { title: string; subtitle?: string; url: string; image_url?: string; description?: string; _uploading?: boolean }[]) || [];
+      return (
+        <div className="space-y-3">
+          <label className="label">Proyectos del Portafolio</label>
+          {items.map((item, i) => (
+            <div key={i} className="bg-bg border border-[var(--border)] rounded-xl p-3 space-y-2">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs font-bold text-accent">Proyecto {i + 1}</span>
+                <button className="text-danger text-xs px-2" onClick={() => set('items', items.filter((_, j) => j !== i))}>✕</button>
+              </div>
+              <div><input className="input" placeholder="Título del proyecto" value={item.title || ''} onChange={e => { const u = [...items]; u[i].title = e.target.value; set('items', u); }} /></div>
+              <div><input className="input" placeholder="Subtítulo o Rol (ej. Frontend Developer)" value={item.subtitle || ''} onChange={e => { const u = [...items]; u[i].subtitle = e.target.value; set('items', u); }} /></div>
+              <div><input className="input" placeholder="Enlace del proyecto (https://...)" value={item.url || ''} onChange={e => { const u = [...items]; u[i].url = e.target.value; set('items', u); }} /></div>
+              <div>
+                <label className="label mt-1 text-[10px]">Imagen de portada (URL externa o Subir)</label>
+                <div className="flex gap-2">
+                  <input className="input flex-1" placeholder="https://..." value={item.image_url || ''} onChange={e => { const u = [...items]; u[i].image_url = e.target.value; set('items', u); }} />
+                  <label className="btn btn-secondary cursor-pointer whitespace-nowrap px-3 text-xs flex items-center h-[42px]">
+                    {item._uploading ? '⏳' : '📂'}
+                    <input type="file" accept="image/*" className="hidden" disabled={item._uploading as boolean} onChange={async e => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      const u = [...items]; u[i] = { ...u[i], _uploading: true }; set('items', u);
+                      try { const url = await storageService.uploadImage(file); u[i].image_url = url; }
+                      catch (err: any) { toast.error(err.message); }
+                      finally { delete u[i]._uploading; set('items', u); }
+                    }} />
+                  </label>
+                </div>
+              </div>
+              {item.image_url && <img src={item.image_url} alt="" className="w-full h-20 object-cover rounded-lg mt-1" onError={e => e.currentTarget.style.display = 'none'} />}
+            </div>
+          ))}
+          <button className="btn btn-secondary text-xs w-full justify-center" onClick={() => set('items', [...items, { title: '', url: '' }])}>+ Añadir proyecto</button>
         </div>
       );
     }
@@ -575,7 +626,7 @@ export default function BlockEditor({ block, onChange }: Props) {
     }
 
     /* ═══ PDF 📄 ═════════════════════════════════════════════════════════════ */
-    case 'pdf':
+    case 'pdf': {
       return (
         <div className="space-y-2">
           <div>
@@ -583,8 +634,20 @@ export default function BlockEditor({ block, onChange }: Props) {
             <input className="input" value={cfg.title as string || ''} onChange={e => set('title', e.target.value)} placeholder="Presentación, Catálogo, CV..." />
           </div>
           <div>
-            <label className="label">URL del PDF</label>
-            <input className="input" value={cfg.url as string || ''} onChange={e => set('url', e.target.value)} placeholder="https://drive.google.com/file/d/.../view" />
+            <label className="label">URL del PDF (Externa o Subir)</label>
+            <div className="flex gap-2">
+              <input className="input flex-1" value={cfg.url as string || ''} onChange={e => set('url', e.target.value)} placeholder="https://..." />
+              <label className="btn btn-secondary cursor-pointer whitespace-nowrap px-3 text-xs flex items-center h-[42px]">
+                {cfg._uploading ? '⏳' : '📂'}
+                <input type="file" accept="application/pdf" className="hidden" disabled={cfg._uploading as boolean} onChange={async e => {
+                  const file = e.target.files?.[0]; if (!file) return;
+                  set('_uploading', true);
+                  try { const url = await storageService.uploadImage(file); set('url', url); }
+                  catch (err: any) { toast.error(err.message); }
+                  finally { set('_uploading', false); }
+                }} />
+              </label>
+            </div>
           </div>
           <div>
             <label className="label">Label del botón</label>
@@ -597,9 +660,10 @@ export default function BlockEditor({ block, onChange }: Props) {
               <option value="false">🔒 Solo visualización</option>
             </select>
           </div>
-          <p className="text-[10px] text-[var(--text-dim)]">Sube tu PDF a Google Drive o Dropbox y pega el enlace de visualización.</p>
+          <p className="text-[10px] text-[var(--text-dim)]">Sube tu PDF directamente o pega un enlace externo válido.</p>
         </div>
       );
+    }
 
     /* ═══ FAQ ❓ ══════════════════════════════════════════════════════════════ */
     case 'faq': {
