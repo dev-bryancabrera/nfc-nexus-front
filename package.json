@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npx vite build",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview",
-    "start": "vite preview"
+    "preview": "npx vite preview",
+    "start": "npx vite preview"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
