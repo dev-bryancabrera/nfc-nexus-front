@@ -18,8 +18,6 @@ export const authService = {
   },
 
   async handleCallback(accessToken: string, refreshToken: string): Promise<AuthCallbackResponse> {
-    console.log('BASE URL:', apiClient.defaults.baseURL);
-console.log('ENV VAR:', import.meta.env.VITE_API_URL);
     const { data } = await apiClient.post<AuthCallbackResponse>('/auth/google/callback', {
       access_token: accessToken,
       refresh_token: refreshToken,
