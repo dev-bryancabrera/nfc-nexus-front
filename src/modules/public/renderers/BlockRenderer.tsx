@@ -57,8 +57,8 @@ export default function BlockRenderer({ block, slug }: Props) {
         <div className="rounded-2xl overflow-hidden border border-[rgba(255,165,2,0.3)]" style={{ background: 'linear-gradient(135deg,rgba(255,165,2,0.08),rgba(255,71,87,0.05))' }}>
           <div className="p-4">
             {cfg.discount && <div className="inline-block bg-[#ffa502] text-black text-xs font-bold px-2 py-0.5 rounded-lg mb-2">{cfg.discount as string}</div>}
-            <div className="font-syne font-bold text-base">{cfg.title as string}</div>
-            <div className="text-sm text-[#a0a0c0] mt-1">{cfg.description as string}</div>
+            <div className="font-syne font-bold text-base">{cfg.title as string || ''}</div>
+            <div className="text-sm text-[#a0a0c0] mt-1">{cfg.description as string || ''}</div>
             {cfg.valid_until && <div className="text-[10px] font-mono text-[var(--text-dim)] mt-2">Válido hasta: {cfg.valid_until as string}</div>}
           </div>
         </div>
@@ -67,11 +67,11 @@ export default function BlockRenderer({ block, slug }: Props) {
       return (
         <div className="bg-[#13131e] border-2 border-dashed border-[rgba(99,102,241,0.4)] rounded-2xl p-4 text-center">
           <div className="text-2xl mb-2">🎟️</div>
-          <div className="font-mono text-2xl font-bold text-[#6366f1] tracking-widest mb-1">{cfg.code as string}</div>
-          <div className="text-sm font-bold text-[#06ffa5]">{cfg.discount as string}</div>
-          <div className="text-xs text-[var(--text-dim)] mt-1">{cfg.description as string}</div>
+          <div className="font-mono text-2xl font-bold text-[#6366f1] tracking-widest mb-1">{cfg.code as string || ''}</div>
+          <div className="text-sm font-bold text-[#06ffa5]">{cfg.discount as string || ''}</div>
+          <div className="text-xs text-[var(--text-dim)] mt-1">{cfg.description as string || ''}</div>
           {cfg.valid_until && <div className="text-[9px] font-mono text-[var(--text-dim)] mt-2">Expira: {cfg.valid_until as string}</div>}
-          <button onClick={() => navigator.clipboard.writeText(cfg.code as string)}
+          <button onClick={() => navigator.clipboard.writeText(cfg.code as string || '')}
             className="mt-3 text-xs bg-[rgba(99,102,241,0.1)] border border-[rgba(99,102,241,0.3)] rounded-lg px-3 py-1.5 text-[#6366f1] hover:bg-[rgba(99,102,241,0.2)] transition-all">
             Copiar código
           </button>
@@ -89,9 +89,9 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'blood_type':
       return (
         <div className="bg-[rgba(255,71,87,0.08)] border border-[rgba(255,71,87,0.3)] rounded-2xl p-4 flex items-center gap-4">
-          <div className="text-4xl font-syne font-extrabold text-[#ff4757]">{cfg.blood_type as string}</div>
+          <div className="text-4xl font-syne font-extrabold text-[#ff4757]">{cfg.blood_type as string || ''}</div>
           <div><div className="text-xs font-mono text-[#ff4757] uppercase tracking-wider">Tipo de sangre</div>
-            {cfg.notes && <div className="text-xs text-[var(--text-dim)] mt-0.5">{cfg.notes as string}</div>}</div>
+            {cfg.notes && <div className="text-xs text-[var(--text-dim)] mt-0.5">{cfg.notes as string || ''}</div>}</div>
         </div>
       );
     case 'allergies': {
@@ -107,7 +107,7 @@ export default function BlockRenderer({ block, slug }: Props) {
           <div className="flex flex-wrap gap-1.5">
             {allergies.map((a, i) => <span key={i} className="text-xs bg-[rgba(255,165,2,0.1)] border border-[rgba(255,165,2,0.3)] text-[#ffa502] px-2 py-0.5 rounded-lg">{a}</span>)}
           </div>
-          {cfg.notes && <div className="text-xs text-[var(--text-dim)] mt-2">{cfg.notes as string}</div>}
+          {cfg.notes && <div className="text-xs text-[var(--text-dim)] mt-2">{cfg.notes as string || ''}</div>}
         </div>
       );
     }
@@ -118,8 +118,8 @@ export default function BlockRenderer({ block, slug }: Props) {
           <div className="w-10 h-10 rounded-full bg-[rgba(255,71,87,0.2)] flex items-center justify-center text-xl flex-shrink-0">🚨</div>
           <div>
             <div className="text-xs font-mono text-[#ff4757] uppercase tracking-wider">Contacto de Emergencia</div>
-            <div className="font-bold text-sm">{cfg.name as string}</div>
-            <div className="text-xs text-[var(--text-dim)]">{cfg.relationship as string} · {cfg.phone as string}</div>
+            <div className="font-bold text-sm">{cfg.name as string || ''}</div>
+            <div className="text-xs text-[var(--text-dim)]">{cfg.relationship as string || ''} · {cfg.phone as string || ''}</div>
           </div>
         </a>
       );
@@ -129,7 +129,7 @@ export default function BlockRenderer({ block, slug }: Props) {
         <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3"><span className="text-xl">🏥</span><span className="font-bold text-sm">Condiciones Médicas</span></div>
           <div className="space-y-1">{conditions.map((c, i) => <div key={i} className="text-sm flex items-center gap-2"><span className="text-[#06ffa5]">•</span>{c}</div>)}</div>
-          {cfg.notes && <div className="text-xs text-[var(--text-dim)] mt-2 border-t border-[rgba(255,255,255,0.05)] pt-2">{cfg.notes as string}</div>}
+          {cfg.notes && <div className="text-xs text-[var(--text-dim)] mt-2 border-t border-[rgba(255,255,255,0.05)] pt-2">{cfg.notes as string || ''}</div>}
         </div>
       );
     }
@@ -154,9 +154,9 @@ export default function BlockRenderer({ block, slug }: Props) {
         <a href={cfg.credential_url as string || '#'} target="_blank" rel="noreferrer" onClick={() => track('clicked_link')}
           className="flex items-center gap-3 bg-[rgba(99,102,241,0.08)] border border-[rgba(99,102,241,0.2)] rounded-2xl p-4 hover:border-[rgba(99,102,241,0.4)] transition-all active:scale-95">
           <span className="text-3xl flex-shrink-0">🏆</span>
-          <div><div className="font-bold text-sm">{cfg.title as string}</div>
-            <div className="text-xs text-[var(--text-dim)]">{cfg.issuer as string}</div>
-            {cfg.date && <div className="text-[10px] font-mono text-[#06ffa5] mt-0.5">{cfg.date as string}</div>}</div>
+          <div><div className="font-bold text-sm">{cfg.title as string || ''}</div>
+            <div className="text-xs text-[var(--text-dim)]">{cfg.issuer as string || ''}</div>
+            {cfg.date && <div className="text-[10px] font-mono text-[#06ffa5] mt-0.5">{cfg.date as string || ''}</div>}</div>
         </a>
       );
     case 'course':
@@ -164,8 +164,8 @@ export default function BlockRenderer({ block, slug }: Props) {
         <a href={cfg.url as string || '#'} target="_blank" rel="noreferrer" onClick={() => track('clicked_link')}
           className="flex items-center gap-3 bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4 hover:border-[rgba(99,102,241,0.3)] transition-all">
           <span className="text-2xl flex-shrink-0">📚</span>
-          <div><div className="font-bold text-sm">{cfg.title as string}</div>
-            <div className="text-xs text-[var(--text-dim)]">{cfg.platform as string}</div></div>
+          <div><div className="font-bold text-sm">{cfg.title as string || ''}</div>
+            <div className="text-xs text-[var(--text-dim)]">{cfg.platform as string || ''}</div></div>
         </a>
       );
     case 'achievement':
@@ -176,22 +176,7 @@ export default function BlockRenderer({ block, slug }: Props) {
             <div className="text-xs text-[var(--text-dim)] mt-0.5">{cfg.description as string}</div></div>
         </div>
       );
-    case 'project': {
-      const tech = (cfg.tech_stack as string[]) || [];
-      return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
-          <div className="font-bold text-sm mb-1">{cfg.title as string}</div>
-          <div className="text-xs text-[var(--text-dim)] mb-2">{cfg.description as string}</div>
-          {tech.length > 0 && <div className="flex flex-wrap gap-1 mb-2">
-            {tech.map((t, i) => <span key={i} className="text-[10px] bg-[rgba(99,102,241,0.1)] text-[#6366f1] border border-[rgba(99,102,241,0.2)] px-2 py-0.5 rounded-full">{t}</span>)}
-          </div>}
-          <div className="flex gap-3">
-            {cfg.url && <a href={cfg.url as string} target="_blank" rel="noreferrer" onClick={() => track('clicked_link')} className="text-[10px] text-[#06ffa5] hover:underline">🔗 Demo</a>}
-            {cfg.repo_url && <a href={cfg.repo_url as string} target="_blank" rel="noreferrer" onClick={() => track('clicked_link')} className="text-[10px] text-[#6366f1] hover:underline">⌨ Repo</a>}
-          </div>
-        </div>
-      );
-    }
+    /* El caso 'project' antiguo fue movido abajo para unificarse con el nuevo diseño de portafolio */
     case 'skill_set': {
       const skills = (cfg.skills as { name: string; level: number }[]) || [];
       return (
@@ -219,10 +204,10 @@ export default function BlockRenderer({ block, slug }: Props) {
         <div className="bg-[#13131e] border border-[rgba(99,102,241,0.2)] rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">{platformIcons[cfg.platform as string] || '🎮'}</span>
+              <span className="text-2xl">{(platformIcons as any)[cfg.platform as string] || '🎮'}</span>
               <div>
-                <div className="font-mono font-bold text-sm">{cfg.username as string}</div>
-                <div className="text-xs text-[var(--text-dim)]">{cfg.main_game as string}</div>
+                <div className="font-mono font-bold text-sm">{cfg.username as string || ''}</div>
+                <div className="text-xs text-[var(--text-dim)]">{cfg.main_game as string || ''}</div>
               </div>
             </div>
             <div className="text-right">
@@ -230,10 +215,10 @@ export default function BlockRenderer({ block, slug }: Props) {
                 <div className="w-2 h-2 rounded-full" style={{ background: statusColors[status] || '#6b6b8a' }} />
                 <span className="text-[10px] font-mono" style={{ color: statusColors[status] }}>{statusLabels[status] || status}</span>
               </div>
-              {cfg.rank && <div className="text-xs font-bold text-[#f059da] mt-0.5">{cfg.rank as string}</div>}
+              {cfg.rank && <div className="text-xs font-bold text-[#f059da] mt-0.5">{cfg.rank as string || ''}</div>}
             </div>
           </div>
-          {cfg.role && <div className="text-[10px] font-mono text-[var(--text-dim)] bg-[#050508] px-2 py-1 rounded-lg inline-block">{cfg.role as string}</div>}
+          {cfg.role && <div className="text-[10px] font-mono text-[var(--text-dim)] bg-[#050508] px-2 py-1 rounded-lg inline-block">{cfg.role as string || ''}</div>}
         </div>
       );
     }
@@ -592,9 +577,9 @@ export default function BlockRenderer({ block, slug }: Props) {
         <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
           <div className="font-syne font-bold text-sm mb-3">🖼️ {title}</div>
           <div className="grid grid-cols-2 gap-2">
-              {photos.map((p, i) => (
+            {photos.map((p, i) => (
               <div key={i} className="relative group rounded-xl overflow-hidden aspect-square border border-[rgba(255,255,255,0.04)]">
-                <img src={p.url} alt={p.caption || ''} className="w-full h-full object-cover" />
+                <img src={p.url || ''} alt={p.caption || ''} className="w-full h-full object-cover" />
                 {p.caption && (
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 p-2 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
                     {p.caption}
@@ -651,8 +636,8 @@ export default function BlockRenderer({ block, slug }: Props) {
 
       return (
         <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
-          {cfg.title && <div className="font-syne font-bold text-sm mb-1">▶️ {cfg.title as string}</div>}
-          {cfg.description && <div className="text-xs text-[var(--text-dim)] mb-3">{cfg.description as string}</div>}
+          {cfg.title && <div className="font-syne font-bold text-sm mb-1">▶️ {cfg.title as string || ''}</div>}
+          {cfg.description && <div className="text-xs text-[var(--text-dim)] mb-3">{cfg.description as string || ''}</div>}
           <div className="rounded-xl overflow-hidden border border-[rgba(255,255,255,0.04)]">
             <iframe src={embedUrl} width="100%" height="200" allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture" allowFullScreen className="border-0 bg-black" />
           </div>
@@ -741,7 +726,7 @@ export default function BlockRenderer({ block, slug }: Props) {
             QRCode.toCanvas(canvasRef.current!, wifiString, {
               width: 220, margin: 2,
               color: { dark: '#ffffff', light: '#0d0d14' }
-            }).catch(() => {});
+            }).catch(() => { });
           });
         }, [revealed, ssid, password, security, hidden]);
 
