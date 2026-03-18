@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { CardBlock } from '../../../types';
 import { storageService } from '../../../services/storage.service';
 import toast from 'react-hot-toast';
+import MapPicker from './MapPicker';
 
 interface Props {
   block: CardBlock;
@@ -504,7 +505,7 @@ export default function BlockEditor({ block, onChange }: Props) {
       );
     }
     case 'map':
-      return <div><label className="label">Dirección</label><input className="input" value={cfg.address as string||''} onChange={e=>set('address',e.target.value)} placeholder="Calle 123, Ciudad" /></div>;
+      return <MapPicker block={block} onChange={onChange} />;
     case 'text':
       return <div><label className="label">Contenido</label><textarea className="input resize-none h-24" value={cfg.content as string||''} onChange={e=>set('content',e.target.value)} /></div>;
     case 'reviews':
