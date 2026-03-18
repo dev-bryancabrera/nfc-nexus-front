@@ -1,10 +1,8 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/auth.store';
 
-console.log('API URL:', import.meta.env.VITE_API_URL);
-
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
+  baseURL: 'https://nfc-nexus-back-production.up.railway.app/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
