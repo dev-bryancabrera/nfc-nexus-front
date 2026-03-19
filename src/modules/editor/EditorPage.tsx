@@ -19,19 +19,19 @@ const GRADIENTS = [
 ];
 
 const CARD_TYPES: { value: CardType; label: string; icon: string; desc: string }[] = [
-  { value: 'personal',    icon: '👤', label: 'Personal',    desc: 'Networking y contacto' },
-  { value: 'business',    icon: '🏢', label: 'Negocio',     desc: 'Empresa y servicios' },
-  { value: 'portfolio',   icon: '🎨', label: 'Portfolio',   desc: 'Proyectos creativos' },
-  { value: 'restaurant',  icon: '🍽️', label: 'Restaurante', desc: 'Menú, pedidos y promos' },
-  { value: 'medical',     icon: '🏥', label: 'Médico',      desc: 'Emergencia y salud' },
-  { value: 'academic',    icon: '🎓', label: 'Académico',   desc: 'Cursos y certificados' },
-  { value: 'gamer',       icon: '🎮', label: 'Gaming',      desc: 'Stats, stream y torneos' },
-  { value: 'fitness',     icon: '💪', label: 'Fitness',     desc: 'Planes y transformación' },
-  { value: 'creator',     icon: '🎭', label: 'Creator',     desc: 'Redes, merch y collabs' },
-  { value: 'access',      icon: '🔐', label: 'Acceso',      desc: 'Tickets y check-in' },
-  { value: 'event',       icon: '🎟️', label: 'Evento',      desc: 'Countdown y asistentes' },
-  { value: 'product',     icon: '🛍️', label: 'Producto',    desc: 'Ficha de producto' },
-  { value: 'blank',       icon: '⬡',  label: 'Libre',       desc: 'Totalmente personalizado' },
+  { value: 'personal', icon: '👤', label: 'Personal', desc: 'Networking y contacto' },
+  { value: 'business', icon: '🏢', label: 'Negocio', desc: 'Empresa y servicios' },
+  { value: 'portfolio', icon: '🎨', label: 'Portfolio', desc: 'Proyectos creativos' },
+  { value: 'restaurant', icon: '🍽️', label: 'Restaurante', desc: 'Menú, pedidos y promos' },
+  { value: 'medical', icon: '🏥', label: 'Médico', desc: 'Emergencia y salud' },
+  { value: 'academic', icon: '🎓', label: 'Académico', desc: 'Cursos y certificados' },
+  { value: 'gamer', icon: '🎮', label: 'Gaming', desc: 'Stats, stream y torneos' },
+  { value: 'fitness', icon: '💪', label: 'Fitness', desc: 'Planes y transformación' },
+  { value: 'creator', icon: '🎭', label: 'Creator', desc: 'Redes, merch y collabs' },
+  { value: 'access', icon: '🔐', label: 'Acceso', desc: 'Tickets y check-in' },
+  { value: 'event', icon: '🎟️', label: 'Evento', desc: 'Countdown y asistentes' },
+  { value: 'product', icon: '🛍️', label: 'Producto', desc: 'Ficha de producto' },
+  { value: 'blank', icon: '⬡', label: 'Libre', desc: 'Totalmente personalizado' },
 ];
 
 export default function EditorPage() {
@@ -140,7 +140,7 @@ export default function EditorPage() {
         <div>
           {/* Tabs */}
           <div className="flex gap-1 bg-surface border border-[var(--border)] rounded-xl p-1 mb-4">
-            {[['info','⬡ Información'],['blocks','🧩 Bloques'],['settings','⚙ Opciones']] .map(([k,l]) => (
+            {[['info', '⬡ Información'], ['blocks', '🧩 Bloques'], ['settings', '⚙ Opciones']].map(([k, l]) => (
               <button key={k} onClick={() => setActiveSection(k as typeof activeSection)}
                 className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${activeSection === k ? 'bg-accent text-white' : 'text-[var(--text-dim)] hover:text-[var(--text)]'}`}>{l}</button>
             ))}
@@ -170,9 +170,9 @@ export default function EditorPage() {
                 <div className="card p-5 border-red-500/20 bg-[rgba(255,71,87,0.03)]">
                   <div className="text-xs font-mono text-danger mb-3 flex items-center gap-1">🚨 DATOS DE EMERGENCIA</div>
                   <div className="space-y-3">
-                    {[['full_name','Nombre del paciente'],['phone','Teléfono de emergencia'],['address','Hospital de referencia']].map(([k,l]) => (
+                    {[['full_name', 'Nombre del paciente'], ['phone', 'Teléfono de emergencia'], ['address', 'Hospital de referencia']].map(([k, l]) => (
                       <div key={k}><label className="label">{l}</label>
-                        <input className="input" value={(card as Record<string,unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} /></div>
+                        <input className="input" value={(card as Record<string, unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} /></div>
                     ))}
                   </div>
                 </div>
@@ -183,10 +183,10 @@ export default function EditorPage() {
                 <div className="card p-5 border-accent/20">
                   <div className="text-xs font-mono text-accent mb-3">🎓 DATOS ACADÉMICOS</div>
                   <div className="space-y-3">
-                    {[['full_name','Nombre completo'],['role','Titulación / Especialidad'],['company','Universidad / Institución'],['bio','Resumen profesional']].map(([k,l]) => (
+                    {[['full_name', 'Nombre completo'], ['role', 'Titulación / Especialidad'], ['company', 'Universidad / Institución'], ['bio', 'Resumen profesional']].map(([k, l]) => (
                       <div key={k}><label className="label">{l}</label>
-                        {k === 'bio' ? <textarea className="input resize-none h-20" value={(card as Record<string,unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} />
-                          : <input className="input" value={(card as Record<string,unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} />}
+                        {k === 'bio' ? <textarea className="input resize-none h-20" value={(card as Record<string, unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} />
+                          : <input className="input" value={(card as Record<string, unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} />}
                       </div>
                     ))}
                   </div>
@@ -198,16 +198,16 @@ export default function EditorPage() {
                 <div className="card p-5 border-orange-500/20">
                   <div className="text-xs font-mono text-warn mb-3">🍽️ DATOS DEL RESTAURANTE</div>
                   <div className="space-y-3">
-                    {[['full_name','Nombre del restaurante'],['role','Tipo de cocina'],['address','Dirección'],['phone','Teléfono de reservas'],['website','Plataforma de pedidos (URL)']].map(([k,l]) => (
+                    {[['full_name', 'Nombre del restaurante'], ['role', 'Tipo de cocina'], ['address', 'Dirección'], ['phone', 'Teléfono de reservas'], ['website', 'Plataforma de pedidos (URL)']].map(([k, l]) => (
                       <div key={k}><label className="label">{l}</label>
-                        <input className="input" value={(card as Record<string,unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} /></div>
+                        <input className="input" value={(card as Record<string, unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} /></div>
                     ))}
                   </div>
                 </div>
               )}
 
               {/* Generic contact info */}
-              {!['medical','restaurant','academic'].includes(card.type || '') && (
+              {!['medical', 'restaurant', 'academic'].includes(card.type || '') && (
                 <div className="card p-5">
                   <h3 className="text-sm font-bold mb-4">Información de contacto</h3>
                   <div className="space-y-3">
@@ -222,10 +222,10 @@ export default function EditorPage() {
                       </div>
                       <p className="text-[10px] text-[var(--text-dim)] mt-1">Sube la foto directo a la Card o pega un enlace web.</p>
                     </div>
-                    {[['full_name','Nombre'],['role','Cargo'],['company','Empresa'],['bio','Bio'],['avatar_emoji','Emoji'],['phone','Teléfono'],['email','Email'],['website','Web'],['address','Dirección']].map(([k,l]) => (
+                    {[['full_name', 'Nombre'], ['role', 'Cargo'], ['company', 'Empresa'], ['bio', 'Bio'], ['avatar_emoji', 'Emoji'], ['phone', 'Teléfono'], ['email', 'Email'], ['website', 'Web'], ['address', 'Dirección']].map(([k, l]) => (
                       <div key={k}><label className="label">{l}</label>
-                        {k === 'bio' ? <textarea className="input resize-none h-16" value={(card as Record<string,unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} />
-                          : <input className="input" value={(card as Record<string,unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} />}
+                        {k === 'bio' ? <textarea className="input resize-none h-16" value={(card as Record<string, unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} />
+                          : <input className="input" value={(card as Record<string, unknown>)[k] as string || ''} onChange={e => set(k, e.target.value)} />}
                       </div>
                     ))}
                   </div>
@@ -299,14 +299,14 @@ export default function EditorPage() {
               <div className="mb-6">
                 <label className="label">Color de la Card (Tema)</label>
                 <div className="flex gap-3 items-center">
-                  <input type="color" className="w-10 h-10 rounded cursor-pointer bg-transparent border-0 p-0" 
-                    value={settings.theme_color || '#6366f1'} 
-                    onChange={e => setSetting('theme_color' as any, e.target.value as any)} 
+                  <input type="color" className="w-10 h-10 rounded cursor-pointer bg-transparent border-0 p-0"
+                    value={settings.theme_color || '#6366f1'}
+                    onChange={e => setSetting('theme_color' as any, e.target.value as any)}
                   />
                   <div className="flex-1">
-                    <input className="input w-full font-mono text-xs uppercase" 
-                      value={settings.theme_color || '#6366f1'} 
-                      onChange={e => setSetting('theme_color' as any, e.target.value as any)} 
+                    <input className="input w-full font-mono text-xs uppercase"
+                      value={settings.theme_color || '#6366f1'}
+                      onChange={e => setSetting('theme_color' as any, e.target.value as any)}
                       placeholder="#6366F1"
                     />
                   </div>
@@ -315,15 +315,15 @@ export default function EditorPage() {
 
               <div className="divide-y divide-[var(--border)]">
                 {([
-                  ['save_contact_btn',    'Botón Guardar Contacto',    'Descarga .vcf en iOS y Android'],
-                  ['analytics_enabled',   'Analíticas',                'Registra escaneos por dispositivo'],
-                  ['whatsapp_button',     'Botón WhatsApp',            'FAB flotante con número de teléfono'],
-                  ['auto_dark_mode',      'Dark mode automático',      'Detecta preferencia del visitante'],
-                  ['animations',          'Animaciones',               'Efectos al cargar la página'],
-                  ['seo_enabled',         'SEO optimizado',            'Meta tags automáticos'],
-                  ['password_protected',  'Proteger con contraseña',   'Solo acceso con PIN'],
-                  ['show_emergency_banner','Banner de emergencia',      'Muestra alerta roja en perfil médico'],
-                  ['realtime_enabled',    'Perfil en tiempo real',     'Cambios se reflejan inmediatamente'],
+                  ['save_contact_btn', 'Botón Guardar Contacto', 'Descarga .vcf en iOS y Android'],
+                  ['analytics_enabled', 'Analíticas', 'Registra escaneos por dispositivo'],
+                  ['whatsapp_button', 'Botón WhatsApp', 'FAB flotante con número de teléfono'],
+                  ['auto_dark_mode', 'Dark mode automático', 'Detecta preferencia del visitante'],
+                  ['animations', 'Animaciones', 'Efectos al cargar la página'],
+                  ['seo_enabled', 'SEO optimizado', 'Meta tags automáticos'],
+                  ['password_protected', 'Proteger con contraseña', 'Solo acceso con PIN'],
+                  ['show_emergency_banner', 'Banner de emergencia', 'Muestra alerta roja en perfil médico'],
+                  ['realtime_enabled', 'Perfil en tiempo real', 'Cambios se reflejan inmediatamente'],
                 ] as [keyof CardSettings, string, string][]).map(([k, label, sub]) => (
                   <div key={k} className="flex items-center justify-between py-3">
                     <div><div className="text-sm font-medium">{label}</div><div className="text-xs text-[var(--text-dim)]">{sub}</div></div>
