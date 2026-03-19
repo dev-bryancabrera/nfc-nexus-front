@@ -181,20 +181,20 @@ export default function BlockEditor({ block, onChange }: Props) {
           <div><label className="label">Icono (emoji)</label><input className="input w-20" value={cfg.icon as string || '🏆'} onChange={e => set('icon', e.target.value)} /></div>
         </div>
       );
-    case 'project': {
-      const tech = (cfg.tech_stack as string[]) || [];
-      return (
-        <div className="space-y-2">
-          {[['title', 'Nombre'], ['description', 'Descripción'], ['url', 'URL demo'], ['repo_url', 'Repositorio']].map(([k, l]) => (
-            <div key={k}><label className="label">{l}</label>
-              {k === 'description' ? <textarea className="input resize-none h-16" value={cfg[k] as string || ''} onChange={e => set(k, e.target.value)} />
-                : <input className="input" value={cfg[k] as string || ''} onChange={e => set(k, e.target.value)} />}</div>
-          ))}
-          <div><label className="label">Stack (separado por coma)</label>
-            <input className="input" value={tech.join(', ')} onChange={e => set('tech_stack', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} placeholder="React, Node.js, PostgreSQL" /></div>
-        </div>
-      );
-    }
+    // case 'project': {
+    //   const tech = (cfg.tech_stack as string[]) || [];
+    //   return (
+    //     <div className="space-y-2">
+    //       {[['title', 'Nombre'], ['description', 'Descripción'], ['url', 'URL demo'], ['repo_url', 'Repositorio']].map(([k, l]) => (
+    //         <div key={k}><label className="label">{l}</label>
+    //           {k === 'description' ? <textarea className="input resize-none h-16" value={cfg[k] as string || ''} onChange={e => set(k, e.target.value)} />
+    //             : <input className="input" value={cfg[k] as string || ''} onChange={e => set(k, e.target.value)} />}</div>
+    //       ))}
+    //       <div><label className="label">Stack (separado por coma)</label>
+    //         <input className="input" value={tech.join(', ')} onChange={e => set('tech_stack', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} placeholder="React, Node.js, PostgreSQL" /></div>
+    //     </div>
+    //   );
+    // }
     case 'skill_set': {
       const skills = (cfg.skills as { name: string; level: number }[]) || [];
       return (
