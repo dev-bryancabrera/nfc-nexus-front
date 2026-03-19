@@ -37,6 +37,6 @@ export const authService = {
 
   async logout(): Promise<void> {
     await supabase.auth.signOut();
-    await apiClient.post('/auth/logout').catch(() => {});
+    await apiClient.post('/auth/logout').catch(() => { });
   },
 };
