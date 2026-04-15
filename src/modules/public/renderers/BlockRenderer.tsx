@@ -8,6 +8,16 @@ export default function BlockRenderer({ block, slug }: Props) {
   const cfg = block.config;
   const track = (action: string) => publicService.recordScan(slug, action);
 
+  // Pick up CSS variables injected by PublicProfilePage so blocks respect the active theme.
+  // Fallbacks match the default dark theme so nothing breaks when used outside that context.
+  const bStyle: React.CSSProperties = {
+    background: 'var(--nfc-block-bg, #13131e)',
+    border: 'var(--nfc-block-border, 1px solid rgba(255,255,255,0.07))',
+  };
+  // Background-only — use on blocks that already have Tailwind hover:border classes
+  const bgStyle: React.CSSProperties = { background: 'var(--nfc-block-bg, #13131e)' };
+  const innerBg: React.CSSProperties = { background: 'var(--nfc-inner-bg, #050508)' };
+
   switch (block.type) {
 
     /* ═══ SPOTIFY ═══════════════════════════════════════════════════════════ */
@@ -43,7 +53,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'menu': {
       const categories = (cfg.categories as { name: string; items: { name: string; price: string; description?: string; emoji?: string }[] }[]) || [];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl overflow-hidden">
+        <div style={bStyle} className="rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.07)] flex items-center gap-2">
             <span>🍽️</span><span className="font-syne font-bold text-sm">Menú</span>
           </div>
@@ -80,7 +90,7 @@ export default function BlockRenderer({ block, slug }: Props) {
       );
     case 'coupon':
       return (
-        <div className="bg-[#13131e] border-2 border-dashed border-[rgba(99,102,241,0.4)] rounded-2xl p-4 text-center">
+        <div style={bgStyle} className="border-2 border-dashed border-[rgba(99,102,241,0.4)] rounded-2xl p-4 text-center">
           <div className="text-2xl mb-2">🎟️</div>
           <div className="font-mono text-2xl font-bold text-[#6366f1] tracking-widest mb-1">{cfg.code as string || ''}</div>
           <div className="text-sm font-bold text-[#06ffa5]">{cfg.discount as string || ''}</div>
@@ -114,7 +124,7 @@ export default function BlockRenderer({ block, slug }: Props) {
       const sev = cfg.severity as string;
       const sevColor = sev === 'anaphylaxis' ? 'text-[#ff4757]' : sev === 'severe' ? 'text-[#ffa502]' : 'text-[#06ffa5]';
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,165,2,0.3)] rounded-2xl p-4">
+        <div style={bgStyle} className="border border-[rgba(255,165,2,0.3)] rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-xl">⚠️</span><span className="font-bold text-sm">Alergias</span>
             {sev && <span className={`text-[10px] font-mono uppercase ${sevColor}`}>{sev}</span>}
@@ -141,7 +151,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'medical_conditions': {
       const conditions = (cfg.conditions as string[]) || [];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3"><span className="text-xl">🏥</span><span className="font-bold text-sm">Condiciones Médicas</span></div>
           <div className="space-y-1">{conditions.map((c, i) => <div key={i} className="text-sm flex items-center gap-2"><span className="text-[#06ffa5]">•</span>{c}</div>)}</div>
           {cfg.notes && <div className="text-xs text-[var(--text-dim)] mt-2 border-t border-[rgba(255,255,255,0.05)] pt-2">{cfg.notes as string || ''}</div>}
@@ -151,7 +161,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'medications': {
       const meds = (cfg.medications as { name: string; dose: string; frequency: string }[]) || [];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3"><span className="text-xl">💊</span><span className="font-bold text-sm">Medicamentos</span></div>
           {meds.map((m, i) => (
             <div key={i} className="flex items-center justify-between py-2 border-b border-[rgba(255,255,255,0.04)] last:border-0">
@@ -177,7 +187,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'course':
       return (
         <a href={cfg.url as string || '#'} target="_blank" rel="noreferrer" onClick={() => track('clicked_link')}
-          className="flex items-center gap-3 bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4 hover:border-[rgba(99,102,241,0.3)] transition-all">
+          style={bgStyle} className="flex items-center gap-3 border border-[rgba(255,255,255,0.07)] rounded-2xl p-4 hover:border-[rgba(99,102,241,0.3)] transition-all">
           <span className="text-2xl flex-shrink-0">📚</span>
           <div><div className="font-bold text-sm">{cfg.title as string || ''}</div>
             <div className="text-xs text-[var(--text-dim)]">{cfg.platform as string || ''}</div></div>
@@ -195,7 +205,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'skill_set': {
       const skills = (cfg.skills as { name: string; level: number }[]) || [];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="font-bold text-sm mb-3 flex items-center gap-2"><span>⚡</span>{cfg.category as string || 'Habilidades'}</div>
           <div className="space-y-2">
             {skills.map((s, i) => (
@@ -216,7 +226,7 @@ export default function BlockRenderer({ block, slug }: Props) {
       const status = cfg.status as string || 'online';
       const platformIcons: Record<string, string> = { pc: '🖥️', psn: '🎮', xbox: '🟩', nintendo: '🔴', mobile: '📱' };
       return (
-        <div className="bg-[#13131e] border border-[rgba(99,102,241,0.2)] rounded-2xl p-4">
+        <div style={bgStyle} className="border border-[rgba(99,102,241,0.2)] rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-2xl">{(platformIcons as any)[cfg.platform as string] || '🎮'}</span>
@@ -240,11 +250,11 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'gaming_stats': {
       const stats = (cfg.stats as { label: string; value: string; icon?: string }[]) || [];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="text-xs font-mono text-[var(--text-dim)] uppercase tracking-widest mb-3">📈 Estadísticas</div>
           <div className="grid grid-cols-2 gap-3">
             {stats.map((s, i) => (
-              <div key={i} className="bg-[#050508] rounded-xl p-3 text-center">
+              <div key={i} style={innerBg} className="rounded-xl p-3 text-center">
                 <div className="text-xl mb-1">{s.icon || '📊'}</div>
                 <div className="font-mono font-bold text-base text-[#6366f1]">{s.value}</div>
                 <div className="text-[10px] text-[var(--text-dim)]">{s.label}</div>
@@ -260,7 +270,8 @@ export default function BlockRenderer({ block, slug }: Props) {
       const isLive = cfg.is_live as boolean;
       return (
         <a href={`${platformUrls[platform] || 'https://'}${cfg.username}`} target="_blank" rel="noreferrer" onClick={() => track('clicked_link')}
-          className={`flex items-center gap-3 rounded-2xl p-4 border transition-all active:scale-95 ${isLive ? 'bg-[rgba(255,71,87,0.1)] border-[rgba(255,71,87,0.4)] hover:bg-[rgba(255,71,87,0.2)]' : 'bg-[#13131e] border-[rgba(255,255,255,0.07)] hover:border-[rgba(99,102,241,0.3)]'}`}>
+          style={isLive ? undefined : bgStyle}
+          className={`flex items-center gap-3 rounded-2xl p-4 border transition-all active:scale-95 ${isLive ? 'bg-[rgba(255,71,87,0.1)] border-[rgba(255,71,87,0.4)] hover:bg-[rgba(255,71,87,0.2)]' : 'border-[rgba(255,255,255,0.07)] hover:border-[rgba(99,102,241,0.3)]'}`}>
           <div className="relative">
             <span className="text-2xl">📺</span>
             {isLive && <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#ff4757] rounded-full animate-pulse border border-[#050508]" />}
@@ -295,7 +306,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'workout_plan': {
       const days = (cfg.days as { day: string; exercises: string[] }[]) || [];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl overflow-hidden">
+        <div style={bStyle} className="rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.07)] flex items-center gap-2">
             <span>💪</span><span className="font-syne font-bold text-sm">{cfg.plan_name as string || 'Plan de Entrenamiento'}</span>
           </div>
@@ -335,14 +346,14 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'macro_tracker': {
       const macros = [{ l: 'Proteínas', v: cfg.protein as number || 0, c: '#ff6348', u: 'g' }, { l: 'Carbos', v: cfg.carbs as number || 0, c: '#ffa502', u: 'g' }, { l: 'Grasas', v: cfg.fats as number || 0, c: '#06ffa5', u: 'g' }];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="font-bold text-sm">🥗 Macros diarios</span>
             {cfg.calories && <span className="font-mono text-sm text-[#ffa502] font-bold">{cfg.calories as number} kcal</span>}
           </div>
           <div className="grid grid-cols-3 gap-2">
             {macros.map(m => (
-              <div key={m.l} className="bg-[#050508] rounded-xl p-2.5 text-center">
+              <div key={m.l} style={innerBg} className="rounded-xl p-2.5 text-center">
                 <div className="font-mono font-bold text-base" style={{ color: m.c }}>{m.v}{m.u}</div>
                 <div className="text-[10px] text-[var(--text-dim)]">{m.l}</div>
               </div>
@@ -357,7 +368,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'social_stats': {
       const platforms = (cfg.platforms as { name: string; followers: string; icon: string }[]) || [];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="text-xs font-mono text-[var(--text-dim)] uppercase tracking-widest mb-3">📣 Métricas</div>
           <div className="space-y-2.5">
             {platforms.map((p, i) => (
@@ -373,7 +384,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'latest_content': {
       const items = (cfg.items as { title: string; url: string; type: string }[]) || [];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl overflow-hidden">
+        <div style={bStyle} className="rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.07)] flex items-center gap-2">
             <span>🎬</span><span className="font-syne font-bold text-sm">Últimos contenidos</span>
           </div>
@@ -413,7 +424,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     /* ═══ ACCESS / EVENTS 🔐 ═════════════════════════════════════════════════ */
     case 'qr_ticket': {
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl overflow-hidden">
+        <div style={bStyle} className="rounded-2xl overflow-hidden">
           <div className="bg-[rgba(99,102,241,0.1)] px-4 py-3 border-b border-[rgba(255,255,255,0.07)] flex items-center justify-between">
             <span className="font-syne font-bold text-sm">🎫 {cfg.event_name as string}</span>
             <span className="text-xs bg-[rgba(6,255,165,0.15)] text-[#06ffa5] border border-[rgba(6,255,165,0.2)] px-2 py-0.5 rounded-full font-mono">{cfg.ticket_type as string || 'General'}</span>
@@ -441,11 +452,11 @@ export default function BlockRenderer({ block, slug }: Props) {
         }, [cfg.target_date]);
         if (diff.ended) return <div className="bg-[rgba(6,255,165,0.1)] border border-[rgba(6,255,165,0.3)] rounded-2xl p-4 text-center font-syne font-bold text-[#06ffa5]">🎉 {cfg.end_message as string || '¡Comenzó!'}</div>;
         return (
-          <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4 text-center">
+          <div style={bStyle} className="rounded-2xl p-4 text-center">
             <div className="text-xs font-mono text-[var(--text-dim)] mb-3">{cfg.title as string}</div>
             <div className="grid grid-cols-4 gap-2">
               {[['d', 'Días'], ['h', 'Horas'], ['m', 'Min'], ['s', 'Seg']].map(([k, l]) => (
-                <div key={k} className="bg-[#050508] rounded-xl py-2">
+                <div key={k} style={innerBg} className="rounded-xl py-2">
                   <div className="font-mono text-2xl font-bold text-[#6366f1]">{String((diff as Record<string, unknown>)[k]).padStart(2, '0')}</div>
                   <div className="text-[9px] text-[var(--text-dim)]">{l}</div>
                 </div>
@@ -459,7 +470,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'attendee_list': {
       const attendees = (cfg.attendees as string[]) || [];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="font-bold text-sm">👥 {cfg.title as string || 'Asistentes'}</span>
             <span className="text-[10px] font-mono bg-[rgba(99,102,241,0.1)] text-[#6366f1] px-2 py-0.5 rounded-full">{attendees.length} confirmados</span>
@@ -475,7 +486,7 @@ export default function BlockRenderer({ block, slug }: Props) {
       const status = cfg.status as string || 'pending';
       const sc = statusConfig[status] || statusConfig.pending;
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="flex items-center justify-between">
             <div><div className="font-bold text-sm">{cfg.event as string}</div>
               <div className="font-mono text-xs text-[var(--text-dim)] mt-0.5">{cfg.access_code as string}</div></div>
@@ -514,7 +525,7 @@ export default function BlockRenderer({ block, slug }: Props) {
       const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
       const available = (cfg.available_days as number[]) || [0, 1, 2, 3, 4];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="font-bold text-sm">📅 Disponibilidad</span>
             {cfg.from && cfg.to && <span className="text-xs font-mono text-[#06ffa5]">{cfg.from as string} – {cfg.to as string}</span>}
@@ -567,7 +578,7 @@ export default function BlockRenderer({ block, slug }: Props) {
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => track('clicked_link')}
-                className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-xl py-3 flex items-center justify-center hover:border-[rgba(99,102,241,0.3)] transition-all"
+                style={bStyle} className="rounded-xl py-3 flex items-center justify-center hover:border-[rgba(99,102,241,0.3)] transition-all"
               >
                 <img
                   src={toSvgUrl(icon.svg)}
@@ -591,7 +602,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'hours': {
       const hours = (cfg.hours as { day: string; time: string }[]) || [];
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3"><span className="text-xl">🕐</span><span className="font-bold text-sm">Horarios</span></div>
           {hours.map((h, i) => (
             <div key={i} className="flex justify-between text-xs py-1.5 border-b border-[rgba(255,255,255,0.04)] last:border-0">
@@ -601,30 +612,62 @@ export default function BlockRenderer({ block, slug }: Props) {
         </div>
       );
     }
-    case 'map':
+    case 'map': {
+      const hasCoords = cfg.lat != null && cfg.lng != null;
+      // Use exact coordinates when available so the pin lands on the right spot
+      const mapsUrl = hasCoords
+        ? `https://maps.google.com/?q=${cfg.lat},${cfg.lng}&ll=${cfg.lat},${cfg.lng}&z=16`
+        : `https://maps.google.com/?q=${encodeURIComponent(cfg.address as string || '')}`;
       return (
-        <a href={`https://maps.google.com/?q=${encodeURIComponent(cfg.address as string || '')}`} target="_blank" rel="noreferrer"
-          className="flex items-center gap-3 bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4 hover:border-[rgba(99,102,241,0.3)] transition-all">
-          <span className="text-2xl">🗺️</span><span className="text-sm">{cfg.address as string}</span>
+        <a href={mapsUrl} target="_blank" rel="noreferrer" onClick={() => track('clicked_link')}
+          style={bgStyle}
+          className="block border border-[rgba(255,255,255,0.07)] rounded-2xl overflow-hidden hover:border-[rgba(99,102,241,0.4)] transition-all active:scale-95 group">
+          {/* Mini static map preview via OpenStreetMap */}
+          {hasCoords && (
+            <div className="relative h-28 overflow-hidden bg-[rgba(99,102,241,0.05)]">
+              <img
+                src={`https://static-maps.yandex.ru/1.x/?lang=es_ES&ll=${cfg.lng},${cfg.lat}&z=15&l=map&size=600,200&pt=${cfg.lng},${cfg.lat},pm2rdl`}
+                alt="Mapa"
+                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            </div>
+          )}
+          <div className="flex items-center gap-3 p-4">
+            <div className="w-9 h-9 rounded-xl bg-[rgba(99,102,241,0.12)] flex items-center justify-center text-lg flex-shrink-0">
+              📍
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate">{cfg.address as string || 'Ver ubicación'}</p>
+              {hasCoords && (
+                <p className="text-[10px] font-mono text-[var(--text-dim)] mt-0.5">
+                  {(cfg.lat as number).toFixed(5)}, {(cfg.lng as number).toFixed(5)}
+                </p>
+              )}
+            </div>
+            <span className="text-[10px] font-semibold text-[#6366f1] flex-shrink-0">Abrir →</span>
+          </div>
         </a>
       );
+    }
     case 'reviews':
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="text-yellow-400 text-sm mb-2">★★★★★</div>
           <div className="text-sm text-[#a0a0c0] leading-relaxed italic">{cfg.text as string}</div>
           <div className="text-xs text-[var(--text-dim)] mt-2">— {cfg.author as string}</div>
         </div>
       );
     case 'text':
-      return <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4 text-sm leading-relaxed text-[#a0a0c0]">{cfg.content as string}</div>;
+      return <div style={bStyle} className="rounded-2xl p-4 text-sm leading-relaxed text-[#a0a0c0]">{cfg.content as string}</div>;
 
     case 'gallery': {
       const title = cfg.title as string || 'Galería';
       const photos = (cfg.photos as { url: string; caption?: string }[]) || [];
       if (photos.length === 0) return null;
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="font-syne font-bold text-sm mb-3">🖼️ {title}</div>
           <div className="grid grid-cols-2 gap-2">
             {photos.map((p, i) => (
@@ -649,7 +692,7 @@ export default function BlockRenderer({ block, slug }: Props) {
         <div className="space-y-3">
           {items.map((p, i) => (
             <a key={i} href={p.url || '#'} target={p.url ? '_blank' : undefined} rel="noreferrer" onClick={() => p.url && track('clicked_link')}
-              className="block bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl overflow-hidden hover:border-[var(--accent)] transition-all group relative">
+              style={bgStyle} className="block border border-[rgba(255,255,255,0.07)] rounded-2xl overflow-hidden hover:border-[var(--accent)] transition-all group relative">
               {p.image_url && (
                 <div className="w-full h-32 relative overflow-hidden">
                   <img src={p.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -685,7 +728,7 @@ export default function BlockRenderer({ block, slug }: Props) {
       if (!embedUrl) return null;
 
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           {cfg.title && <div className="font-syne font-bold text-sm mb-1">▶️ {cfg.title as string || ''}</div>}
           {cfg.description && <div className="text-xs text-[var(--text-dim)] mb-3">{cfg.description as string || ''}</div>}
           <div className="rounded-xl overflow-hidden border border-[rgba(255,255,255,0.04)]">
@@ -698,7 +741,7 @@ export default function BlockRenderer({ block, slug }: Props) {
     case 'pdf': {
       if (!cfg.url) return null;
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4 flex flex-col items-center text-center gap-3">
+        <div style={bStyle} className="rounded-2xl p-4 flex flex-col items-center text-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-[rgba(255,71,87,0.1)] text-[#ff4757] flex items-center justify-center text-2xl border border-[rgba(255,71,87,0.2)]">📄</div>
           <div>
             <div className="font-syne font-bold text-sm">{cfg.title as string || 'Documento PDF'}</div>
@@ -728,7 +771,7 @@ export default function BlockRenderer({ block, slug }: Props) {
         );
       }
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="font-syne font-bold text-sm mb-2">❓ {cfg.title as string || 'Preguntas Frecuentes'}</div>
           <div>
             {faqs.map((f, i) => <FAQItem key={i} q={f.question} a={f.answer} />)}
@@ -741,11 +784,11 @@ export default function BlockRenderer({ block, slug }: Props) {
       const items = (cfg.items as { label: string; value: string; icon?: string }[]) || [];
       if (items.length === 0) return null;
       return (
-        <div className="bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-2xl p-4">
+        <div style={bStyle} className="rounded-2xl p-4">
           <div className="font-syne font-bold text-sm mb-3">📊 {cfg.title as string || 'Estadísticas'}</div>
           <div className="grid grid-cols-2 gap-2">
             {items.map((s, i) => (
-              <div key={i} className="bg-[#050508] rounded-xl p-3 text-center border border-[rgba(255,255,255,0.04)]">
+              <div key={i} style={innerBg} className="rounded-xl p-3 text-center border border-[rgba(255,255,255,0.04)]">
                 <div className="text-xl mb-1">{s.icon || '📈'}</div>
                 <div className="font-mono font-bold text-base text-[#6366f1]">{s.value}</div>
                 <div className="text-[10px] text-[var(--text-dim)] mt-0.5">{s.label}</div>
@@ -789,7 +832,7 @@ export default function BlockRenderer({ block, slug }: Props) {
         if (!ssid) return null;
 
         return (
-          <div className="bg-[#13131e] border border-[rgba(99,102,241,0.25)] rounded-2xl overflow-hidden">
+          <div style={bgStyle} className="border border-[rgba(99,102,241,0.25)] rounded-2xl overflow-hidden">
             {/* Header: siempre visible */}
             <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.07)] flex items-center justify-between">
               <div className="flex items-center gap-2">

@@ -5,8 +5,8 @@ import { storageService } from '../../services/storage.service';
 import type { Card, CardBlock, CardSettings, CardType } from '../../types';
 import { DEFAULT_SETTINGS } from '../../types';
 import { getBlocksForCard, groupBlocks, CATEGORY_LABELS } from '../../lib/blocks';
-import { getCardTheme } from '../../lib/cardTheme';
 import BlockEditor from './components/BlockEditor';
+import PublicProfilePage from '../public/PublicProfilePage';
 import toast from 'react-hot-toast';
 
 const GRADIENTS = [
@@ -67,6 +67,7 @@ export default function EditorPage() {
   const [expandedBlock, setExpandedBlock] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
 
   const [card, setCard] = useState<Partial<Card>>({
     name: '', type: 'personal', status: 'draft', theme: 'dark-nexus',
@@ -134,6 +135,22 @@ export default function EditorPage() {
       toast.error(err.message);
     } finally {
       setUploadingAvatar(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingCover(true);
+    try {
+      const url = await storageService.uploadImage(file);
+      set('cover_image_url', url);
+      toast.success('Imagen de portada subida');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setUploadingCover(false);
       e.target.value = '';
     }
   };
@@ -259,13 +276,57 @@ export default function EditorPage() {
 
               <div className="card p-5">
                 <h3 className="text-sm font-bold mb-3">🎨 Portada</h3>
-                <div className="flex gap-2 flex-wrap">
-                  {GRADIENTS.map(g => (
-                    <button key={g} onClick={() => set('cover_gradient', g)}
-                      className={`w-8 h-8 rounded-lg border-2 transition-all ${card.cover_gradient === g ? 'border-white scale-110' : 'border-transparent hover:scale-105'}`}
-                      style={{ background: g }} />
-                  ))}
+
+                {/* Cover mode toggle */}
+                <div className="flex gap-1 bg-bg border border-[var(--border)] rounded-xl p-1 mb-3">
+                  {(['gradient', 'image'] as const).map(mode => {
+                    const active = mode === 'image' ? !!card.cover_image_url : !card.cover_image_url;
+                    return (
+                      <button key={mode} onClick={() => {
+                        if (mode === 'gradient') set('cover_image_url', null);
+                      }}
+                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${active ? 'bg-accent text-white' : 'text-[var(--text-dim)] hover:text-[var(--text)]'}`}>
+                        {mode === 'gradient' ? '🎨 Degradado' : '🖼️ Imagen'}
+                      </button>
+                    );
+                  })}
                 </div>
+
+                {/* Gradient swatches */}
+                {!card.cover_image_url && (
+                  <div className="flex gap-2 flex-wrap">
+                    {GRADIENTS.map(g => (
+                      <button key={g} onClick={() => set('cover_gradient', g)}
+                        className={`w-8 h-8 rounded-lg border-2 transition-all ${card.cover_gradient === g ? 'border-white scale-110' : 'border-transparent hover:scale-105'}`}
+                        style={{ background: g }} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Image URL + upload */}
+                {card.cover_image_url ? (
+                  <div className="space-y-2">
+                    <div className="relative w-full h-24 rounded-xl overflow-hidden border border-[var(--border)]">
+                      <img src={card.cover_image_url} alt="Portada" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => set('cover_image_url', null)}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/80 transition-all"
+                        title="Quitar imagen">✕</button>
+                    </div>
+                    <div className="flex gap-2">
+                      <input className="input flex-1 text-xs" placeholder="https://..." value={card.cover_image_url || ''} onChange={e => set('cover_image_url', e.target.value)} />
+                      <label className="btn btn-secondary cursor-pointer whitespace-nowrap min-w-[80px] justify-center text-xs">
+                        {uploadingCover ? '⏳' : '📂 Subir'}
+                        <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} disabled={uploadingCover} />
+                      </label>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="mt-2 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border-2 border-dashed border-[var(--border)] text-xs text-[var(--text-dim)] hover:border-accent/50 hover:text-accent transition-all cursor-pointer">
+                    {uploadingCover ? '⏳ Subiendo...' : '🖼️ Subir imagen de portada'}
+                    <input type="file" accept="image/*" className="hidden" onChange={e => { handleCoverUpload(e); }} disabled={uploadingCover} />
+                  </label>
+                )}
               </div>
             </div>
           )}
@@ -465,110 +526,30 @@ export default function EditorPage() {
           )}
         </div>
 
-        {/* ── Preview ── */}
+        {/* ── Live preview ── */}
         <div>
           <div className="sticky top-20">
-            <p className="text-center text-[10px] font-mono text-[var(--text-dim)] tracking-widest uppercase mb-4">Preview en vivo</p>
-            <PhonePreview card={card} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PhonePreview({ card }: { card: Partial<Card> }) {
-  const type = card.type || 'personal';
-  const isMedical = type === 'medical';
-  const s = card.settings as CardSettings || DEFAULT_SETTINGS;
-  const accent = s.theme_color || '#6366f1';
-  const theme = getCardTheme(s.card_style, s.font_style);
-  const layout = s.profile_layout || 'standard';
-  const pageBg = theme.pageBackground(accent);
-
-  const avatarEl = card.avatar_url
-    ? <img src={card.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-    : <span>{isMedical ? '🏥' : card.avatar_emoji || '🚀'}</span>;
-
-  const coverBg = isMedical ? 'linear-gradient(135deg,#ff4757,#c0392b)' : card.cover_gradient || GRADIENTS[0];
-
-  return (
-    <div className="flex justify-center">
-      <div className="w-[300px] bg-black rounded-[36px] border-[7px] border-[#1a1a2e] shadow-[0_30px_80px_rgba(0,0,0,0.8)] overflow-hidden">
-        <div className="h-6 bg-black flex items-center justify-center"><div className="w-16 h-3 bg-[#111] rounded-full" /></div>
-
-        <div className="min-h-[560px] overflow-hidden" style={{ background: pageBg, fontFamily: theme.fontFamily }}>
-          {isMedical && <div className="bg-[#ff4757] text-white text-[9px] font-mono text-center py-1.5 font-bold tracking-widest">🚨 PERFIL DE EMERGENCIA MÉDICA</div>}
-
-          {/* Standard / Banner cover */}
-          {(layout === 'standard' || layout === 'banner') && (
-            <div className={layout === 'banner' ? 'h-36 relative' : 'h-28 relative'} style={{ background: coverBg }}>
-              <div className={`absolute bottom-0 translate-y-1/2 ${layout === 'banner' ? 'left-1/2 -translate-x-1/2' : 'left-4'} w-16 h-16 ${layout === 'banner' ? 'rounded-2xl' : 'rounded-full'} border-[3px] overflow-hidden flex items-center justify-center text-2xl`}
-                style={{ borderColor: theme.avatarBorderColor, background: isMedical ? '#fff' : theme.avatarBg(accent) }}>
-                {avatarEl}
-              </div>
-            </div>
-          )}
-
-          {/* Centered: avatar above name */}
-          {layout === 'centered' && (
-            <div className="pt-6 flex flex-col items-center">
-              <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center text-3xl border-[3px]"
-                style={{ background: theme.avatarBg(accent), borderColor: accent + '50' }}>
-                {avatarEl}
-              </div>
-            </div>
-          )}
-
-          {/* Body */}
-          <div className={`px-4 pb-4 ${layout === 'banner' ? 'pt-11' : layout === 'centered' ? 'pt-3 text-center' : layout === 'minimal' ? 'pt-4' : 'pt-9'}`}>
-
-            {/* Minimal: avatar inline */}
-            {layout === 'minimal' && (
-              <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center text-xl"
-                  style={{ background: theme.avatarBg(accent) }}>
-                  {avatarEl}
+            <p className="text-center text-[10px] font-mono text-[var(--text-dim)] tracking-widest uppercase mb-3">Preview en vivo</p>
+            <div className="flex justify-center">
+              {/* Phone shell */}
+              <div className="w-[300px] bg-black rounded-[36px] border-[7px] border-[#1a1a2e] shadow-[0_30px_80px_rgba(0,0,0,0.8)] overflow-hidden flex-shrink-0">
+                {/* Notch */}
+                <div className="h-6 bg-black flex items-center justify-center">
+                  <div className="w-16 h-3 bg-[#111] rounded-full" />
                 </div>
-                <div>
-                  <div className="text-sm font-extrabold" style={{ color: theme.textColor }}>{card.full_name || 'Tu Nombre'}</div>
-                  <div className="text-[10px]" style={{ color: theme.textDimColor }}>{[card.role, card.company].filter(Boolean).join(' · ') || ''}</div>
+                {/* Scrollable card preview — full fidelity */}
+                <div className="h-[600px] overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+                  <PublicProfilePage previewCardData={card} />
                 </div>
               </div>
-            )}
-
-            {layout !== 'minimal' && (
-              <>
-                <div className="text-base font-extrabold" style={{ color: theme.textColor }}>{card.full_name || 'Tu Nombre'}</div>
-                <div className="text-[11px]" style={{ color: theme.textDimColor }}>{[card.role, card.company].filter(Boolean).join(' · ') || ''}</div>
-              </>
-            )}
-
-            {card.bio && <div className="text-[10px] mt-2 line-clamp-2" style={{ color: theme.bioColor }}>{card.bio}</div>}
-
-            {!isMedical && (
-              <div className="mt-3 rounded-xl p-2 text-center text-[10px] font-semibold"
-                style={{ background: accent + '18', border: `1px solid ${accent}35`, color: accent }}>💾 Guardar Contacto</div>
-            )}
-
-            <div className="mt-2 space-y-1">
-              {card.phone && <div className="rounded-xl px-2.5 py-1.5 text-[10px]"
-                style={{ background: theme.blockBg, border: theme.blockBorder(accent), color: accent,
-                  boxShadow: theme.hasNeonGlow ? `0 0 8px ${accent}40` : undefined }}>📞 {card.phone}</div>}
-              {card.email && <div className="rounded-xl px-2.5 py-1.5 text-[10px]"
-                style={{ background: theme.blockBg, border: theme.blockBorder(accent), color: accent,
-                  boxShadow: theme.hasNeonGlow ? `0 0 8px ${accent}40` : undefined }}>📧 {card.email}</div>}
             </div>
-
-            {(card.blocks || []).filter(b => b.visible).slice(0, 3).map(b => (
-              <div key={b.id} className="mt-1.5 rounded-xl px-2.5 py-1.5 text-[10px] capitalize flex items-center gap-1"
-                style={{ background: theme.blockBg, border: theme.blockBorder(accent), color: theme.textDimColor }}>
-                {b.type.startsWith('spotify') ? '🎵' : b.type === 'menu' ? '🍽️' : b.type === 'blood_type' ? '🩸' : b.type === 'certificate' ? '🏆' : '📦'}
-                {' '}{b.type.replace(/_/g, ' ')}
-              </div>
-            ))}
-            {(card.blocks || []).length > 3 && (
-              <div className="text-[8px] text-center font-mono mt-1" style={{ color: theme.textDimColor }}>+{card.blocks!.length - 3} más</div>
+            {card.public_url && (
+              <p className="text-center mt-3">
+                <a href={card.public_url} target="_blank" rel="noreferrer"
+                  className="text-[10px] font-mono text-accent hover:underline">
+                  🔗 Ver en vivo →
+                </a>
+              </p>
             )}
           </div>
         </div>

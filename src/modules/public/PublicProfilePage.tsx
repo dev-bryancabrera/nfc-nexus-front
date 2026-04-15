@@ -7,7 +7,12 @@ import type { Card, CardSettings, CardBlock } from '../../types';
 import { getCardTheme } from '../../lib/cardTheme';
 import BlockRenderer from './renderers/BlockRenderer';
 
-interface Props { slugOverride?: string }
+interface Props {
+  slugOverride?: string;
+  /** When provided the component skips the API fetch and renders from this data directly.
+   *  Used by the editor to show a live, pixel-perfect preview. */
+  previewCardData?: Partial<Card>;
+}
 
 const TYPE_THEMES: Record<string, { accent: string; bg: string; cover: string }> = {
   medical: { accent: '#ff4757', bg: '#050508', cover: 'linear-gradient(135deg,#ff4757,#c0392b)' },
@@ -19,17 +24,26 @@ const TYPE_THEMES: Record<string, { accent: string; bg: string; cover: string }>
   access: { accent: '#6366f1', bg: '#050508', cover: 'linear-gradient(135deg,#0d0d14,#1a1a2e)' },
 };
 
-export default function PublicProfilePage({ slugOverride }: Props) {
+export default function PublicProfilePage({ slugOverride, previewCardData }: Props) {
+  const isPreview = !!previewCardData;
   const { slug: paramSlug } = useParams<{ slug: string }>();
   const slug = slugOverride || paramSlug || '';
-  const [card, setCard] = useState<Card | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  const [card, setCard] = useState<Card | null>(isPreview ? previewCardData as Card : null);
+  const [loading, setLoading] = useState(!isPreview);
   const [notFound, setNotFound] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
 
+  // Sync live edits from the editor into the preview
   useEffect(() => {
+    if (isPreview) setCard(previewCardData as Card);
+  }, [previewCardData, isPreview]);
+
+  // Public page: fetch from API (skipped in preview mode)
+  useEffect(() => {
+    if (isPreview) return;
     if (!slug) { setNotFound(true); setLoading(false); return; }
     const fetch = domainLib.mode === 'subdomain' && slugOverride
       ? publicService.getCardBySubdomain()
@@ -39,11 +53,11 @@ export default function PublicProfilePage({ slugOverride }: Props) {
       setCard(res.card as unknown as Card);
       if (res.card.full_name) document.title = `${res.card.full_name} — BRTECH NFC`;
     }).catch(() => setNotFound(true)).finally(() => setLoading(false));
-  }, [slug]);
+  }, [slug, isPreview]);
 
-  // Realtime polling: merge updated realtime blocks into card
+  // Realtime polling: disabled in preview mode
   const settings = card?.settings as CardSettings | undefined;
-  const isRealtimeEnabled = settings?.realtime_enabled ?? false;
+  const isRealtimeEnabled = !isPreview && (settings?.realtime_enabled ?? false);
 
   const handleRealtimeUpdate = useCallback((realtimeBlocks: CardBlock[]) => {
     setCard(prev => {
@@ -109,8 +123,8 @@ export default function PublicProfilePage({ slugOverride }: Props) {
 
   const cardSettings = card.settings as CardSettings;
 
-  // ── Password gate ──────────────────────────────────────
-  if (cardSettings.password_protected && cardSettings.access_password && !unlocked) {
+  // ── Password gate (skipped in editor preview) ─────────
+  if (!isPreview && cardSettings.password_protected && cardSettings.access_password && !unlocked) {
     const checkPin = () => {
       if (pinInput === cardSettings.access_password) { setUnlocked(true); setPinError(false); }
       else { setPinError(true); }
@@ -151,7 +165,15 @@ export default function PublicProfilePage({ slugOverride }: Props) {
   const isMedical = card.type === 'medical';
   const isGamer = card.type === 'gamer';
   const isRestaurant = card.type === 'restaurant';
-  const coverGradient = isMedical ? baseTheme.cover : card.cover_gradient;
+  // Cover background: image takes priority over gradient; medical always uses its red gradient
+  const coverBg = isMedical
+    ? baseTheme.cover
+    : card.cover_image_url
+      ? `url("${card.cover_image_url}")`
+      : card.cover_gradient;
+  const coverStyle = card.cover_image_url && !isMedical
+    ? { backgroundImage: coverBg, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : { background: coverBg };
 
   const cardTheme = getCardTheme(cardSettings.card_style, cardSettings.font_style);
   const profileLayout = cardSettings.profile_layout || 'standard';
@@ -172,7 +194,17 @@ export default function PublicProfilePage({ slugOverride }: Props) {
   };
 
   return (
-    <div className="min-h-screen relative" style={{ background: pageBg, fontFamily: cardTheme.fontFamily, color: cardTheme.textColor }}>
+    <div className="min-h-screen relative" style={{
+      background: pageBg,
+      fontFamily: cardTheme.fontFamily,
+      color: cardTheme.textColor,
+      // Inject theme tokens as CSS vars so BlockRenderer can consume them
+      '--nfc-block-bg': cardTheme.blockBg,
+      '--nfc-block-border': `1px solid ${accent}25`,
+      '--nfc-inner-bg': cardTheme.isLight ? 'rgba(0,0,0,0.04)' : '#050508',
+      '--text-dim': cardTheme.textDimColor,
+      '--text': cardTheme.textColor,
+    } as React.CSSProperties}>
 
       {/* Aurora overlay */}
       {cardTheme.hasAurora && (
@@ -205,7 +237,7 @@ export default function PublicProfilePage({ slugOverride }: Props) {
 
       {/* Gamer standard: special dark banner */}
       {useGamerLayout && (
-        <div className="h-44 relative overflow-hidden z-10" style={{ background: baseTheme.cover }}>
+        <div className="h-44 relative overflow-hidden z-10" style={coverStyle}>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#05040a]" />
           <div className="absolute inset-0 flex items-center justify-center opacity-5">
             <div className="text-[120px]">🎮</div>
@@ -219,7 +251,7 @@ export default function PublicProfilePage({ slugOverride }: Props) {
 
       {/* Standard / Banner cover */}
       {!useGamerLayout && (profileLayout === 'standard' || profileLayout === 'banner') && (
-        <div className={`${profileLayout === 'banner' ? 'h-60' : 'h-44'} relative z-10`} style={{ background: coverGradient }}>
+        <div className={`${profileLayout === 'banner' ? 'h-60' : 'h-44'} relative z-10`} style={coverStyle}>
           {isMedical && <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40" />}
           <div className={`absolute bottom-0 translate-y-1/2 ${profileLayout === 'banner' ? 'left-1/2 -translate-x-1/2' : 'left-5'} ${profileLayout === 'banner' ? 'w-24 h-24 rounded-2xl' : 'w-20 h-20 rounded-full'} border-[4px] overflow-hidden flex items-center justify-center text-3xl`}
             style={{ borderColor: cardTheme.avatarBorderColor, background: isMedical ? '#fff' : cardTheme.avatarBg(accent) }}>
@@ -347,29 +379,10 @@ export default function PublicProfilePage({ slugOverride }: Props) {
             const message = cardSettings.whatsapp_message
               ? encodeURIComponent(cardSettings.whatsapp_message)
               : '';
-            // Try deep link first (opens native app on mobile)
-            const deepLink = `whatsapp://send?phone=${cleanPhone}${message ? `&text=${message}` : ''}`;
-            const webLink = `https://wa.me/${cleanPhone}${message ? `?text=${message}` : ''}`;
-            // On mobile: deep link opens the app directly
-            // On desktop or if app not installed: fallback to web
-            const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-            if (isMobile) {
-              let appOpened = false;
-              const iframe = document.createElement('iframe');
-              iframe.style.display = 'none';
-              iframe.src = deepLink;
-              document.body.appendChild(iframe);
-              const timeout = setTimeout(() => {
-                if (!appOpened) window.open(webLink, '_blank');
-                document.body.removeChild(iframe);
-              }, 1500);
-              window.addEventListener('blur', () => {
-                appOpened = true;
-                clearTimeout(timeout);
-              }, { once: true });
-            } else {
-              window.open(webLink, '_blank');
-            }
+            // wa.me is the official WhatsApp universal link — opens the app on
+            // iOS and Android if installed, falls back to WhatsApp Web otherwise.
+            const url = `https://wa.me/${cleanPhone}${message ? `?text=${message}` : ''}`;
+            window.open(url, '_blank');
             publicService.recordScan(slug, 'clicked_link');
           }}
           className="fixed bottom-6 right-5 w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center text-2xl shadow-lg hover:scale-110 transition-transform z-50 cursor-pointer border-0"

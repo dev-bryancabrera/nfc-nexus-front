@@ -73,7 +73,7 @@ export interface Card {
   id: string; user_id: string; name: string; slug: string;
   type: CardType; status: CardStatus; theme: string;
   blocks: CardBlock[]; settings: CardSettings;
-  cover_gradient: string; full_name: string | null; role: string | null;
+  cover_gradient: string; cover_image_url?: string | null; full_name: string | null; role: string | null;
   company: string | null; bio: string | null; avatar_emoji: string | null;
   avatar_url: string | null;
   phone: string | null; email: string | null; website: string | null;
