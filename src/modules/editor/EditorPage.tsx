@@ -68,6 +68,7 @@ export default function EditorPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [coverMode, setCoverMode] = useState<'gradient' | 'image'>('gradient');
 
   const [card, setCard] = useState<Partial<Card>>({
     name: '', type: 'personal', status: 'draft', theme: 'dark-nexus',
@@ -78,7 +79,10 @@ export default function EditorPage() {
   });
 
   useEffect(() => {
-    if (cardId) cardsService.get(cardId).then(c => setCard(c)).catch(() => toast.error('Error cargando card'));
+    if (cardId) cardsService.get(cardId).then(c => {
+      setCard(c);
+      if (c.cover_image_url) setCoverMode('image');
+    }).catch(() => toast.error('Error cargando card'));
   }, [cardId]);
 
   const set = useCallback((k: string, v: unknown) => setCard(p => ({ ...p, [k]: v })), []);
@@ -279,21 +283,19 @@ export default function EditorPage() {
 
                 {/* Cover mode toggle */}
                 <div className="flex gap-1 bg-bg border border-[var(--border)] rounded-xl p-1 mb-3">
-                  {(['gradient', 'image'] as const).map(mode => {
-                    const active = mode === 'image' ? !!card.cover_image_url : !card.cover_image_url;
-                    return (
-                      <button key={mode} onClick={() => {
-                        if (mode === 'gradient') set('cover_image_url', null);
-                      }}
-                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${active ? 'bg-accent text-white' : 'text-[var(--text-dim)] hover:text-[var(--text)]'}`}>
-                        {mode === 'gradient' ? '🎨 Degradado' : '🖼️ Imagen'}
-                      </button>
-                    );
-                  })}
+                  {(['gradient', 'image'] as const).map(mode => (
+                    <button key={mode} onClick={() => {
+                      setCoverMode(mode);
+                      if (mode === 'gradient') set('cover_image_url', null);
+                    }}
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${coverMode === mode ? 'bg-accent text-white' : 'text-[var(--text-dim)] hover:text-[var(--text)]'}`}>
+                      {mode === 'gradient' ? '🎨 Degradado' : '🖼️ Imagen'}
+                    </button>
+                  ))}
                 </div>
 
                 {/* Gradient swatches */}
-                {!card.cover_image_url && (
+                {coverMode === 'gradient' && (
                   <div className="flex gap-2 flex-wrap">
                     {GRADIENTS.map(g => (
                       <button key={g} onClick={() => set('cover_gradient', g)}
@@ -303,29 +305,31 @@ export default function EditorPage() {
                   </div>
                 )}
 
-                {/* Image URL + upload */}
-                {card.cover_image_url ? (
-                  <div className="space-y-2">
-                    <div className="relative w-full h-24 rounded-xl overflow-hidden border border-[var(--border)]">
-                      <img src={card.cover_image_url} alt="Portada" className="w-full h-full object-cover" />
-                      <button
-                        onClick={() => set('cover_image_url', null)}
-                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/80 transition-all"
-                        title="Quitar imagen">✕</button>
+                {/* Image upload / preview */}
+                {coverMode === 'image' && (
+                  card.cover_image_url ? (
+                    <div className="space-y-2">
+                      <div className="relative w-full h-24 rounded-xl overflow-hidden border border-[var(--border)]">
+                        <img src={card.cover_image_url} alt="Portada" className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => set('cover_image_url', null)}
+                          className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/80 transition-all"
+                          title="Quitar imagen">✕</button>
+                      </div>
+                      <div className="flex gap-2">
+                        <input className="input flex-1 text-xs" placeholder="https://..." value={card.cover_image_url || ''} onChange={e => set('cover_image_url', e.target.value)} />
+                        <label className="btn btn-secondary cursor-pointer whitespace-nowrap min-w-[80px] justify-center text-xs">
+                          {uploadingCover ? '⏳' : '📂 Subir'}
+                          <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} disabled={uploadingCover} />
+                        </label>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <input className="input flex-1 text-xs" placeholder="https://..." value={card.cover_image_url || ''} onChange={e => set('cover_image_url', e.target.value)} />
-                      <label className="btn btn-secondary cursor-pointer whitespace-nowrap min-w-[80px] justify-center text-xs">
-                        {uploadingCover ? '⏳' : '📂 Subir'}
-                        <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} disabled={uploadingCover} />
-                      </label>
-                    </div>
-                  </div>
-                ) : (
-                  <label className="mt-2 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border-2 border-dashed border-[var(--border)] text-xs text-[var(--text-dim)] hover:border-accent/50 hover:text-accent transition-all cursor-pointer">
-                    {uploadingCover ? '⏳ Subiendo...' : '🖼️ Subir imagen de portada'}
-                    <input type="file" accept="image/*" className="hidden" onChange={e => { handleCoverUpload(e); }} disabled={uploadingCover} />
-                  </label>
+                  ) : (
+                    <label className="mt-2 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border-2 border-dashed border-[var(--border)] text-xs text-[var(--text-dim)] hover:border-accent/50 hover:text-accent transition-all cursor-pointer">
+                      {uploadingCover ? '⏳ Subiendo...' : '🖼️ Subir imagen de portada'}
+                      <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} disabled={uploadingCover} />
+                    </label>
+                  )
                 )}
               </div>
             </div>
