@@ -58,6 +58,21 @@ export default function PublicProfilePage({ slugOverride }: Props) {
 
   useRealtimeBlocks(card?.id, isRealtimeEnabled, handleRealtimeUpdate, 15000);
 
+  // Load Google Font dynamically — must be called unconditionally (Rules of Hooks)
+  const cardThemeForFont = card
+    ? getCardTheme((card.settings as CardSettings)?.card_style, (card.settings as CardSettings)?.font_style)
+    : null;
+  useEffect(() => {
+    if (!cardThemeForFont?.googleFontsUrl) return;
+    const linkId = 'card-custom-font';
+    if (document.getElementById(linkId)) return;
+    const link = document.createElement('link');
+    link.id = linkId;
+    link.rel = 'stylesheet';
+    link.href = cardThemeForFont.googleFontsUrl;
+    document.head.appendChild(link);
+  }, [cardThemeForFont?.googleFontsUrl]);
+
   const saveContact = () => {
     if (!card) return;
     const vcf = ['BEGIN:VCARD', 'VERSION:3.0',
@@ -143,18 +158,6 @@ export default function PublicProfilePage({ slugOverride }: Props) {
   const pageBg = cardTheme.pageBackground(accent);
   // Gamer keeps special layout only on 'standard'
   const useGamerLayout = isGamer && profileLayout === 'standard';
-
-  // Load Google Font dynamically when needed
-  useEffect(() => {
-    if (!cardTheme.googleFontsUrl) return;
-    const linkId = 'card-custom-font';
-    if (document.getElementById(linkId)) return;
-    const link = document.createElement('link');
-    link.id = linkId;
-    link.rel = 'stylesheet';
-    link.href = cardTheme.googleFontsUrl;
-    document.head.appendChild(link);
-  }, [cardTheme.googleFontsUrl]);
 
   const avatarContent = card.avatar_url ? (
     <img src={card.avatar_url} alt={card.full_name || 'Perfil'} className="w-full h-full object-cover" />

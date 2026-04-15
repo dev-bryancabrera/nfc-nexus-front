@@ -19,6 +19,7 @@ const NAV = [
 export default function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebar-collapsed') === 'true');
+  const [loggingOut, setLoggingOut] = useState(false);
   const { user, clear } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,6 +35,8 @@ export default function DashboardLayout() {
   };
 
   const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
     try { await authService.logout(); }
     catch (error) { console.warn('Network error during logout, forcing clear', error); }
     finally { clear(); toast.success('Sesión cerrada'); navigate('/login'); }
@@ -107,8 +110,15 @@ export default function DashboardLayout() {
 
           {/* Logout — only when expanded */}
           {!collapsed && (
-            <button onClick={handleLogout} className="btn btn-ghost text-xs w-full justify-center opacity-60 hover:opacity-100 hover:text-danger">
-              ← Cerrar sesión
+            <button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="btn btn-ghost text-xs w-full justify-center opacity-60 hover:opacity-100 hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {loggingOut
+                ? <><span className="inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-1.5" />Cerrando sesión...</>
+                : '← Cerrar sesión'
+              }
             </button>
           )}
         </div>
