@@ -5,6 +5,7 @@ import { storageService } from '../../services/storage.service';
 import type { Card, CardBlock, CardSettings, CardType } from '../../types';
 import { DEFAULT_SETTINGS } from '../../types';
 import { getBlocksForCard, groupBlocks, CATEGORY_LABELS } from '../../lib/blocks';
+import { getCardTheme } from '../../lib/cardTheme';
 import BlockEditor from './components/BlockEditor';
 import toast from 'react-hot-toast';
 
@@ -16,6 +17,30 @@ const GRADIENTS = [
   'linear-gradient(135deg,#2d6a4f,#06ffa5)',
   'linear-gradient(135deg,#ff4757,#c0392b)',
   'linear-gradient(135deg,#ffd700,#ff8c00)',
+];
+
+const CARD_STYLES = [
+  { id: 'dark',     name: 'Dark Nexus', desc: 'Oscuro',    bg: '#050508', accent: '#6366f1' },
+  { id: 'glass',    name: 'Glass',      desc: 'Blur',      bg: '#0c0c1a', accent: '#6366f1' },
+  { id: 'neon',     name: 'Neon',       desc: 'Glow',      bg: '#04040c', accent: '#f059da' },
+  { id: 'gradient', name: 'Gradient',   desc: 'Degradado', bg: 'linear-gradient(135deg,#6366f1,#050508)', accent: '#6366f1' },
+  { id: 'light',    name: 'Light',      desc: 'Claro',     bg: '#f4f4ee', accent: '#6366f1' },
+  { id: 'aurora',   name: 'Aurora',     desc: 'Animado',   bg: 'linear-gradient(135deg,#050508,#0a0a20)', accent: '#06ffa5' },
+];
+
+const PROFILE_LAYOUTS = [
+  { id: 'standard', name: 'Estándar', icon: '◧', desc: 'Avatar izquierda' },
+  { id: 'centered', name: 'Centrado', icon: '⊙', desc: 'Todo centrado' },
+  { id: 'banner',   name: 'Banner',   icon: '▬', desc: 'Cover grande' },
+  { id: 'minimal',  name: 'Minimal',  icon: '◈', desc: 'Sin cover' },
+];
+
+const FONT_STYLES = [
+  { id: 'outfit',   name: 'Outfit',          label: 'Moderno',     family: 'Outfit, sans-serif' },
+  { id: 'syne',     name: 'Syne',            label: 'Geométrico',  family: 'Syne, sans-serif' },
+  { id: 'inter',    name: 'Inter',           label: 'Profesional', family: 'Inter, sans-serif' },
+  { id: 'playfair', name: 'Playfair',        label: 'Elegante',    family: '"Playfair Display", serif' },
+  { id: 'mono',     name: 'JetBrains Mono',  label: 'Tech',        family: '"JetBrains Mono", monospace' },
 ];
 
 const CARD_TYPES: { value: CardType; label: string; icon: string; desc: string }[] = [
@@ -56,7 +81,7 @@ export default function EditorPage() {
   }, [cardId]);
 
   const set = useCallback((k: string, v: unknown) => setCard(p => ({ ...p, [k]: v })), []);
-  const setSetting = (k: keyof CardSettings, v: boolean) =>
+  const setSetting = (k: keyof CardSettings, v: boolean | string) =>
     setCard(p => ({ ...p, settings: { ...(p.settings || DEFAULT_SETTINGS), [k]: v } }));
 
   const addBlock = (type: string) => {
@@ -293,44 +318,148 @@ export default function EditorPage() {
 
           {/* ── SETTINGS TAB ── */}
           {activeSection === 'settings' && (
-            <div className="card p-5">
-              <h3 className="text-sm font-bold mb-4">Opciones avanzadas</h3>
+            <div className="space-y-4">
 
-              <div className="mb-6">
-                <label className="label">Color de la Card (Tema)</label>
-                <div className="flex gap-3 items-center">
-                  <input type="color" className="w-10 h-10 rounded cursor-pointer bg-transparent border-0 p-0"
-                    value={settings.theme_color || '#6366f1'}
-                    onChange={e => setSetting('theme_color' as any, e.target.value as any)}
-                  />
-                  <div className="flex-1">
-                    <input className="input w-full font-mono text-xs uppercase"
-                      value={settings.theme_color || '#6366f1'}
-                      onChange={e => setSetting('theme_color' as any, e.target.value as any)}
-                      placeholder="#6366F1"
-                    />
+              {/* ── Diseño Visual ── */}
+              <div className="card p-5">
+                <h3 className="text-sm font-bold mb-4">🎨 Diseño Visual</h3>
+
+                {/* Card Style */}
+                <div className="mb-5">
+                  <label className="label">Estilo visual</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {CARD_STYLES.map(s => {
+                      const active = (settings.card_style || 'dark') === s.id;
+                      return (
+                        <button key={s.id} onClick={() => setSetting('card_style', s.id)}
+                          className={`rounded-xl border-2 overflow-hidden transition-all ${active ? 'border-accent' : 'border-[var(--border)] hover:border-accent/40'}`}>
+                          <div className="h-10" style={{ background: s.bg }} />
+                          <div className={`text-[10px] text-center font-semibold py-1.5 px-1 ${active ? 'text-accent' : 'text-[var(--text-dim)]'}`}>{s.name}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Profile Layout */}
+                <div className="mb-5">
+                  <label className="label">Layout del perfil</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {PROFILE_LAYOUTS.map(l => {
+                      const active = (settings.profile_layout || 'standard') === l.id;
+                      return (
+                        <button key={l.id} onClick={() => setSetting('profile_layout', l.id)}
+                          className={`flex items-center gap-2 rounded-xl border-2 p-3 text-left transition-all ${active ? 'border-accent bg-accent/10' : 'border-[var(--border)] hover:border-accent/40'}`}>
+                          <span className="text-lg">{l.icon}</span>
+                          <div>
+                            <div className={`text-xs font-semibold ${active ? 'text-accent' : ''}`}>{l.name}</div>
+                            <div className="text-[10px] text-[var(--text-dim)]">{l.desc}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Font Style */}
+                <div>
+                  <label className="label">Tipografía</label>
+                  <div className="space-y-1.5">
+                    {FONT_STYLES.map(f => {
+                      const active = (settings.font_style || 'outfit') === f.id;
+                      return (
+                        <button key={f.id} onClick={() => setSetting('font_style', f.id)}
+                          className={`w-full flex items-center justify-between rounded-xl border-2 px-3 py-2.5 transition-all ${active ? 'border-accent bg-accent/10' : 'border-[var(--border)] hover:border-accent/40'}`}>
+                          <span className={`text-sm font-semibold ${active ? 'text-accent' : ''}`} style={{ fontFamily: f.family }}>{f.name}</span>
+                          <span className="text-[10px] text-[var(--text-dim)]">{f.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
 
-              <div className="divide-y divide-[var(--border)]">
-                {([
-                  ['save_contact_btn', 'Botón Guardar Contacto', 'Descarga .vcf en iOS y Android'],
-                  ['analytics_enabled', 'Analíticas', 'Registra escaneos por dispositivo'],
-                  ['whatsapp_button', 'Botón WhatsApp', 'FAB flotante con número de teléfono'],
-                  ['auto_dark_mode', 'Dark mode automático', 'Detecta preferencia del visitante'],
-                  ['animations', 'Animaciones', 'Efectos al cargar la página'],
-                  ['seo_enabled', 'SEO optimizado', 'Meta tags automáticos'],
-                  ['password_protected', 'Proteger con contraseña', 'Solo acceso con PIN'],
-                  ['show_emergency_banner', 'Banner de emergencia', 'Muestra alerta roja en perfil médico'],
-                  ['realtime_enabled', 'Perfil en tiempo real', 'Cambios se reflejan inmediatamente'],
-                ] as [keyof CardSettings, string, string][]).map(([k, label, sub]) => (
-                  <div key={k} className="flex items-center justify-between py-3">
-                    <div><div className="text-sm font-medium">{label}</div><div className="text-xs text-[var(--text-dim)]">{sub}</div></div>
-                    <div className={`toggle-track ${settings[k] ? 'on' : ''}`} onClick={() => setSetting(k, !settings[k])}>
-                      <div className="toggle-thumb" /></div>
+              {/* ── Opciones avanzadas ── */}
+              <div className="card p-5">
+                <h3 className="text-sm font-bold mb-4">Opciones avanzadas</h3>
+
+                <div className="mb-6">
+                  <label className="label">Color de acento</label>
+                  <div className="flex gap-3 items-center">
+                    <input type="color" className="w-10 h-10 rounded cursor-pointer bg-transparent border-0 p-0"
+                      value={settings.theme_color || '#6366f1'}
+                      onChange={e => setSetting('theme_color' as keyof CardSettings, e.target.value)}
+                    />
+                    <div className="flex-1">
+                      <input className="input w-full font-mono text-xs uppercase"
+                        value={settings.theme_color || '#6366f1'}
+                        onChange={e => setSetting('theme_color' as keyof CardSettings, e.target.value)}
+                        placeholder="#6366F1"
+                      />
+                    </div>
                   </div>
-                ))}
+                </div>
+
+                <div className="divide-y divide-[var(--border)]">
+                  {([
+                    ['save_contact_btn', 'Botón Guardar Contacto', 'Descarga .vcf en iOS y Android'],
+                    ['analytics_enabled', 'Analíticas', 'Registra escaneos por dispositivo'],
+                    ['whatsapp_button', 'Botón WhatsApp', 'FAB flotante con número de teléfono'],
+                    ['auto_dark_mode', 'Dark mode automático', 'Detecta preferencia del visitante'],
+                    ['animations', 'Animaciones', 'Efectos al cargar la página'],
+                    ['seo_enabled', 'SEO optimizado', 'Meta tags automáticos'],
+                    ['password_protected', 'Proteger con contraseña', 'Solo acceso con PIN'],
+                    ['show_emergency_banner', 'Banner de emergencia', 'Muestra alerta roja en perfil médico'],
+                    ['realtime_enabled', 'Perfil en tiempo real', 'Cambios se reflejan inmediatamente'],
+                  ] as [keyof CardSettings, string, string][]).map(([k, label, sub]) => (
+                    <div key={k}>
+                      <div className="flex items-center justify-between py-3">
+                        <div><div className="text-sm font-medium">{label}</div><div className="text-xs text-[var(--text-dim)]">{sub}</div></div>
+                        <div className={`toggle-track ${settings[k] ? 'on' : ''}`} onClick={() => setSetting(k, !(settings[k] as boolean))}>
+                          <div className="toggle-thumb" /></div>
+                      </div>
+                      {k === 'whatsapp_button' && settings.whatsapp_button && (
+                        <div className="pb-3 -mt-1">
+                          <label className="label flex items-center gap-1.5">
+                            💬 <span>Mensaje predefinido para comunicación por WhatsApp</span>
+                          </label>
+                          <textarea
+                            className="input resize-none h-20 text-xs"
+                            placeholder="Hola, vi tu tarjeta NFC y me gustaría más información..."
+                            value={settings.whatsapp_message || ''}
+                            onChange={e => setCard(p => ({
+                              ...p,
+                              settings: { ...(p.settings || DEFAULT_SETTINGS), whatsapp_message: e.target.value }
+                            }))}
+                          />
+                          <p className="text-[10px] text-[var(--text-dim)] mt-1">
+                            Este texto aparecerá pre-escrito en el chat al abrir WhatsApp.
+                          </p>
+                        </div>
+                      )}
+                      {k === 'password_protected' && settings.password_protected && (
+                        <div className="pb-3 -mt-1">
+                          <label className="label flex items-center gap-1.5">
+                            🔑 <span>Contraseña de acceso</span>
+                          </label>
+                          <input
+                            type="text"
+                            className="input text-xs font-mono tracking-widest"
+                            placeholder="Escribe la contraseña..."
+                            value={settings.access_password || ''}
+                            onChange={e => setCard(p => ({
+                              ...p,
+                              settings: { ...(p.settings || DEFAULT_SETTINGS), access_password: e.target.value }
+                            }))}
+                          />
+                          <p className="text-[10px] text-[var(--text-dim)] mt-1">
+                            El visitante deberá ingresar esta contraseña para ver tu perfil.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -351,45 +480,95 @@ export default function EditorPage() {
 function PhonePreview({ card }: { card: Partial<Card> }) {
   const type = card.type || 'personal';
   const isMedical = type === 'medical';
+  const s = card.settings as CardSettings || DEFAULT_SETTINGS;
+  const accent = s.theme_color || '#6366f1';
+  const theme = getCardTheme(s.card_style, s.font_style);
+  const layout = s.profile_layout || 'standard';
+  const pageBg = theme.pageBackground(accent);
+
+  const avatarEl = card.avatar_url
+    ? <img src={card.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+    : <span>{isMedical ? '🏥' : card.avatar_emoji || '🚀'}</span>;
+
+  const coverBg = isMedical ? 'linear-gradient(135deg,#ff4757,#c0392b)' : card.cover_gradient || GRADIENTS[0];
 
   return (
     <div className="flex justify-center">
       <div className="w-[300px] bg-black rounded-[36px] border-[7px] border-[#1a1a2e] shadow-[0_30px_80px_rgba(0,0,0,0.8)] overflow-hidden">
         <div className="h-6 bg-black flex items-center justify-center"><div className="w-16 h-3 bg-[#111] rounded-full" /></div>
-        <div className="bg-[#050508] min-h-[560px]" style={{ '--accent': (card.settings as CardSettings)?.theme_color || '#6366f1' } as React.CSSProperties}>
-          {isMedical && <div className="bg-danger text-white text-[10px] font-mono text-center py-1.5 font-bold tracking-widest">🚨 PERFIL DE EMERGENCIA MÉDICA</div>}
-          <div className="h-28 relative" style={{ background: isMedical ? 'linear-gradient(135deg,#ff4757,#c0392b)' : card.cover_gradient || GRADIENTS[0] }}>
-            <div className="absolute bottom-0 left-4 translate-y-1/2 w-16 h-16 rounded-full border-[3px] border-[#050508] flex items-center justify-center text-2xl overflow-hidden bg-surface"
-              style={{ background: isMedical ? '#fff' : 'linear-gradient(135deg,#f059da,#6366f1)' }}>
-              {card.avatar_url ? (
-                <img src={card.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                isMedical ? '🏥' : card.avatar_emoji || '🚀'
-              )}
-            </div>
-          </div>
-          <div className="px-4 pt-9 pb-4">
-            <div className="font-syne text-base font-extrabold text-white">{card.full_name || 'Tu Nombre'}</div>
-            <div className="text-[11px] text-[var(--text-dim)]">{[card.role, card.company].filter(Boolean).join(' · ') || ''}</div>
-            {card.bio && <div className="text-[10px] text-[var(--text-mid)] mt-2 line-clamp-2">{card.bio}</div>}
 
-            {!isMedical && (
-              <div className="mt-3 bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent)] rounded-xl p-2 text-center text-[10px] font-semibold">💾 Guardar Contacto</div>
+        <div className="min-h-[560px] overflow-hidden" style={{ background: pageBg, fontFamily: theme.fontFamily }}>
+          {isMedical && <div className="bg-[#ff4757] text-white text-[9px] font-mono text-center py-1.5 font-bold tracking-widest">🚨 PERFIL DE EMERGENCIA MÉDICA</div>}
+
+          {/* Standard / Banner cover */}
+          {(layout === 'standard' || layout === 'banner') && (
+            <div className={layout === 'banner' ? 'h-36 relative' : 'h-28 relative'} style={{ background: coverBg }}>
+              <div className={`absolute bottom-0 translate-y-1/2 ${layout === 'banner' ? 'left-1/2 -translate-x-1/2' : 'left-4'} w-16 h-16 ${layout === 'banner' ? 'rounded-2xl' : 'rounded-full'} border-[3px] overflow-hidden flex items-center justify-center text-2xl`}
+                style={{ borderColor: theme.avatarBorderColor, background: isMedical ? '#fff' : theme.avatarBg(accent) }}>
+                {avatarEl}
+              </div>
+            </div>
+          )}
+
+          {/* Centered: avatar above name */}
+          {layout === 'centered' && (
+            <div className="pt-6 flex flex-col items-center">
+              <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center text-3xl border-[3px]"
+                style={{ background: theme.avatarBg(accent), borderColor: accent + '50' }}>
+                {avatarEl}
+              </div>
+            </div>
+          )}
+
+          {/* Body */}
+          <div className={`px-4 pb-4 ${layout === 'banner' ? 'pt-11' : layout === 'centered' ? 'pt-3 text-center' : layout === 'minimal' ? 'pt-4' : 'pt-9'}`}>
+
+            {/* Minimal: avatar inline */}
+            {layout === 'minimal' && (
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center text-xl"
+                  style={{ background: theme.avatarBg(accent) }}>
+                  {avatarEl}
+                </div>
+                <div>
+                  <div className="text-sm font-extrabold" style={{ color: theme.textColor }}>{card.full_name || 'Tu Nombre'}</div>
+                  <div className="text-[10px]" style={{ color: theme.textDimColor }}>{[card.role, card.company].filter(Boolean).join(' · ') || ''}</div>
+                </div>
+              </div>
             )}
 
-            <div className="mt-2 space-y-1" style={{ color: 'var(--accent)' }}>
-              {card.phone && <div className="bg-[var(--accent)]/5 border border-[var(--accent)]/10 rounded-xl px-2.5 py-1.5 text-[10px]">📞 {card.phone}</div>}
-              {card.email && <div className="bg-[var(--accent)]/5 border border-[var(--accent)]/10 rounded-xl px-2.5 py-1.5 text-[10px]">📧 {card.email}</div>}
+            {layout !== 'minimal' && (
+              <>
+                <div className="text-base font-extrabold" style={{ color: theme.textColor }}>{card.full_name || 'Tu Nombre'}</div>
+                <div className="text-[11px]" style={{ color: theme.textDimColor }}>{[card.role, card.company].filter(Boolean).join(' · ') || ''}</div>
+              </>
+            )}
+
+            {card.bio && <div className="text-[10px] mt-2 line-clamp-2" style={{ color: theme.bioColor }}>{card.bio}</div>}
+
+            {!isMedical && (
+              <div className="mt-3 rounded-xl p-2 text-center text-[10px] font-semibold"
+                style={{ background: accent + '18', border: `1px solid ${accent}35`, color: accent }}>💾 Guardar Contacto</div>
+            )}
+
+            <div className="mt-2 space-y-1">
+              {card.phone && <div className="rounded-xl px-2.5 py-1.5 text-[10px]"
+                style={{ background: theme.blockBg, border: theme.blockBorder(accent), color: accent,
+                  boxShadow: theme.hasNeonGlow ? `0 0 8px ${accent}40` : undefined }}>📞 {card.phone}</div>}
+              {card.email && <div className="rounded-xl px-2.5 py-1.5 text-[10px]"
+                style={{ background: theme.blockBg, border: theme.blockBorder(accent), color: accent,
+                  boxShadow: theme.hasNeonGlow ? `0 0 8px ${accent}40` : undefined }}>📧 {card.email}</div>}
             </div>
 
-            {(card.blocks || []).filter(b => b.visible).slice(0, 4).map(b => (
-              <div key={b.id} className="mt-1.5 bg-[#13131e] border border-[rgba(255,255,255,0.07)] rounded-xl px-2.5 py-1.5 text-[10px] text-[var(--text-dim)] capitalize flex items-center gap-1">
-                {b.type === 'spotify_track' || b.type === 'spotify_playlist' ? '🎵' : b.type === 'menu' ? '🍽️' : b.type === 'blood_type' ? '🩸' : b.type === 'certificate' ? '🏆' : '📦'}
+            {(card.blocks || []).filter(b => b.visible).slice(0, 3).map(b => (
+              <div key={b.id} className="mt-1.5 rounded-xl px-2.5 py-1.5 text-[10px] capitalize flex items-center gap-1"
+                style={{ background: theme.blockBg, border: theme.blockBorder(accent), color: theme.textDimColor }}>
+                {b.type.startsWith('spotify') ? '🎵' : b.type === 'menu' ? '🍽️' : b.type === 'blood_type' ? '🩸' : b.type === 'certificate' ? '🏆' : '📦'}
                 {' '}{b.type.replace(/_/g, ' ')}
               </div>
             ))}
-            {(card.blocks || []).length > 4 && (
-              <div className="text-[8px] text-center text-[var(--text-dim)] font-mono mt-1">+{card.blocks!.length - 4} más</div>
+            {(card.blocks || []).length > 3 && (
+              <div className="text-[8px] text-center font-mono mt-1" style={{ color: theme.textDimColor }}>+{card.blocks!.length - 3} más</div>
             )}
           </div>
         </div>

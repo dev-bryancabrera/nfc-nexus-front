@@ -39,6 +39,6 @@
   .toggle-track{@apply relative w-10 h-[22px] rounded-full cursor-pointer transition-all duration-200 bg-surface2 border border-[var(--border)]}
   .toggle-track.on{@apply bg-accent border-accent}
   .toggle-thumb{@apply absolute top-[3px] left-[3px] w-3.5 h-3.5 rounded-full bg-white transition-transform duration-200}
-  .toggle-track.on .toggle-thumb{@apply translate-x-[18px]}
+  .toggle-track.on .toggle-thumb{transform:translateX(20px)}
   .url-box{@apply bg-bg border border-[var(--border-bright)] rounded-xl px-4 py-3 font-mono text-xs text-accent2 flex items-center justify-between gap-3 break-all}
 }

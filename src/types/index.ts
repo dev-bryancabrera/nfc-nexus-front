@@ -43,6 +43,7 @@ export interface CardSettings {
   save_contact_btn: boolean;
   analytics_enabled: boolean;
   whatsapp_button: boolean;
+  whatsapp_message?: string;
   auto_dark_mode: boolean;
   animations: boolean;
   seo_enabled: boolean;
@@ -50,6 +51,10 @@ export interface CardSettings {
   show_emergency_banner: boolean;
   realtime_enabled: boolean;
   theme_color?: string;
+  access_password?: string;
+  card_style?: string;     // dark | glass | neon | gradient | light | aurora
+  profile_layout?: string; // standard | centered | banner | minimal
+  font_style?: string;     // outfit | syne | inter | playfair | mono
   // Gamer
   show_online_status: boolean;
   // Access
@@ -60,6 +65,7 @@ export const DEFAULT_SETTINGS: CardSettings = {
   save_contact_btn: true, analytics_enabled: true, whatsapp_button: true,
   auto_dark_mode: true, animations: true, seo_enabled: true,
   password_protected: false, show_emergency_banner: false, realtime_enabled: false,
+  card_style: 'dark', profile_layout: 'standard', font_style: 'outfit',
   show_online_status: false, require_check_in: false,
 };
 
