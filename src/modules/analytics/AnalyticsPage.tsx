@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { AnalyticsOverview, Scan } from '../types';
 import toast from 'react-hot-toast';
 import { analyticsService } from '@/services/analytics.service';
 
+const TYPE_ICONS: Record<string, string> = {
+    personal: '👤', business: '🏢', portfolio: '🎨', restaurant: '🍽️',
+    medical: '🏥', academic: '🎓', event: '🎟️', product: '🛍️', blank: '⬡',
+    gamer: '🎮', fitness: '💪', creator: '🎬', access: '🔑',
+};
+
 export function AnalyticsPage() {
+    const navigate = useNavigate();
     const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
     const [scans, setScans] = useState<Scan[]>([]);
     const [loading, setLoading] = useState(true);
@@ -40,6 +48,46 @@ export function AnalyticsPage() {
                     </div>
                 ))}
             </div>
+
+            {/* Rendimiento por card */}
+            {overview && overview.cards_summary.length > 0 && (
+                <div className="card p-6">
+                    <h3 className="font-syne font-bold mb-4">Rendimiento por Card</h3>
+                    <div className="space-y-2">
+                        {[...overview.cards_summary]
+                            .sort((a, b) => b.scan_count - a.scan_count)
+                            .map(card => {
+                                const maxScans = Math.max(...overview.cards_summary.map(c => c.scan_count), 1);
+                                const pct = Math.round((card.scan_count / maxScans) * 100);
+                                return (
+                                    <div
+                                        key={card.id}
+                                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent/5 cursor-pointer transition-colors group"
+                                        onClick={() => navigate(`/dashboard/analytics/${card.id}`)}
+                                    >
+                                        <span className="text-lg flex-shrink-0">{TYPE_ICONS[card.type] || '◈'}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-sm font-medium truncate">{card.name}</span>
+                                                <span className="font-mono text-xs text-[var(--text-dim)] ml-2 flex-shrink-0">⚡ {card.scan_count}</span>
+                                            </div>
+                                            <div className="h-1 bg-surface2 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full rounded-full transition-all duration-500 bg-accent/70 group-hover:bg-accent"
+                                                    style={{ width: `${pct}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] font-mono flex-shrink-0 ${card.status === 'active' ? 'text-accent2' : 'text-[var(--text-dim)]'}`}>
+                                            {card.status === 'active' ? '● activa' : '◌ borrador'}
+                                        </span>
+                                        <span className="text-[var(--text-dim)] text-xs opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">→</span>
+                                    </div>
+                                );
+                            })}
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 <div className="card p-6">

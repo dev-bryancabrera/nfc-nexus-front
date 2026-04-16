@@ -45,6 +45,7 @@ export function CardsPage() {
                 {c.public_url && <div className="text-[10px] font-mono text-accent2 mb-3 truncate">{c.public_url}</div>}
                 <div className="flex gap-2">
                   <button className="btn btn-secondary text-xs flex-1" onClick={() => navigate(`/dashboard/editor/${c.id}`)}>✦ Editar</button>
+                  <button className="btn btn-ghost text-xs" onClick={() => navigate(`/dashboard/analytics/${c.id}`)} title="Ver analíticas">◎</button>
                   <button className="btn btn-ghost text-xs" onClick={() => dup(c.id)} title="Duplicar">⊕</button>
                   <button className="btn btn-danger text-xs" onClick={() => del(c.id, c.name)}>✕</button>
                 </div>

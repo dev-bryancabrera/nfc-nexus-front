@@ -29,9 +29,14 @@ export interface ProfileResponse { profile: UserProfile }
 export interface AnalyticsOverviewResponse extends AnalyticsOverview {}
 export interface ScansResponse { scans: Scan[] }
 export interface CardAnalyticsResponse {
+  card: { id: string; name: string; type: string; status: string; scan_count: number };
   scans_by_day: Record<string, number>;
   actions: Record<string, number>;
+  devices: { ios: number; android: number; desktop: number; other: number };
   total: number;
+  saved_contacts: number;
+  conversion_rate: number;
+  scans: Scan[];
 }
 
 export interface PublicCardResponse {

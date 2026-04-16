@@ -13,6 +13,7 @@ import EditorPage from './modules/editor/EditorPage';
 import PublicProfilePage from './modules/public/PublicProfilePage';
 import { CardsPage } from './modules/cards/CardsPage';
 import { AnalyticsPage } from './modules/analytics/AnalyticsPage';
+import { CardAnalyticsPage } from './modules/analytics/CardAnalyticsPage';
 import { QRPage } from './modules/qr/QRPage';
 import { WritePage } from './modules/write/WritePage';
 import { ThemesPage } from './modules/themes/ThemesPage';
@@ -55,6 +56,7 @@ export default function App() {
           <Route path="editor"         element={<EditorPage />} />
           <Route path="editor/:cardId" element={<EditorPage />} />
           <Route path="analytics"      element={<AnalyticsPage />} />
+          <Route path="analytics/:cardId" element={<CardAnalyticsPage />} />
           <Route path="qr"             element={<QRPage />} />
           <Route path="write"          element={<WritePage />} />
           <Route path="themes"         element={<ThemesPage />} />

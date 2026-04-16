@@ -70,6 +70,7 @@ export default function DashboardHome() {
               </div>
               <div className="flex gap-2" onClick={e => e.stopPropagation()}>
                 <button className="btn btn-secondary flex-1 text-xs py-1.5" onClick={() => navigate(`/dashboard/editor/${card.id}`)}>✦ Editar</button>
+                <button className="btn btn-ghost text-xs py-1.5" onClick={() => navigate(`/dashboard/analytics/${card.id}`)} title="Ver analíticas">◎</button>
                 <button className="btn btn-success text-xs py-1.5" onClick={() => navigate('/dashboard/write', { state: { url: card.public_url, name: card.name } })}>⟁ NFC</button>
               </div>
             </div>
